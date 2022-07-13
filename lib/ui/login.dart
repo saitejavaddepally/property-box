@@ -2,6 +2,7 @@ import 'package:flutter_neumorphic/flutter_neumorphic.dart';
 import 'package:property_box/components/custom_button.dart';
 import 'package:property_box/components/custom_text_field.dart';
 import 'package:property_box/components/custom_title.dart';
+import 'package:property_box/route_generator.dart';
 import 'package:property_box/theme/colors.dart';
 import 'package:country_code_picker/country_code_picker.dart';
 
@@ -136,8 +137,11 @@ class _LoginState extends State<Login> {
                           text: 'Continue',
                           onClick: () {
                             if (_formKey.currentState!.validate()) {
-                              print(_phoneNumberController.text);
-                              print(_dialCode);
+                              Navigator.pushNamed(context, RouteName.otp,
+                                  arguments: [
+                                    _phoneNumberController.text,
+                                    _dialCode
+                                  ]);
                             }
                           },
                           color: CustomColors.lightBlue,

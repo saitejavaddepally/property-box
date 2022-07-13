@@ -1,9 +1,15 @@
 import 'package:country_code_picker/country_localizations.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:property_box/route_generator.dart';
+import 'package:property_box/services/auth_methods.dart';
+import 'package:property_box/ui/Home/bottom_navigation.dart';
 import 'package:property_box/ui/onboarding.dart';
+import 'package:firebase_core/firebase_core.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
   runApp(const MyApp());
 }
 
@@ -12,8 +18,8 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
-      supportedLocales: [
+    return MaterialApp(
+      supportedLocales: const [
         Locale("af"),
         Locale("am"),
         Locale("ar"),
@@ -85,12 +91,23 @@ class MyApp extends StatelessWidget {
         Locale("vi"),
         Locale("zh")
       ],
-      localizationsDelegates: [
+      localizationsDelegates: const [
         CountryLocalizations.delegate,
-        
       ],
       debugShowCheckedModeBanner: false,
-      home: Onboarding(),
+      home: FutureBuilder<User?>(
+        future: AuthMethods().getCurrentUser(),
+        builder: (context, snapshot) {
+          if (snapshot.hasData) {
+            return BottomBar(
+              isIndexGiven: false,
+              index: 0,
+            );
+          } else {
+            return const Onboarding();
+          }
+        },
+      ),
       onGenerateRoute: RouteGenerator.generateRoute,
     );
   }

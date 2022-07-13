@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:property_box/route_generator.dart';
+import 'package:property_box/services/auth_methods.dart';
 
-import '../../components/custom_neumorphic_button.dart';
 import '../../components/home_container.dart';
 import '../../helper/contants.dart';
 
@@ -186,7 +187,11 @@ class _HomeState extends State<Home> {
                     buttonText: "Refer Now",
                     buttonTextColor: const Color(0xFF21293A),
                     buttonColor: const Color(0xFFF3F4F6),
-                    onButtonClick: () {}),
+                    onButtonClick: () async {
+                      await AuthMethods().signOut();
+                      Navigator.pushNamedAndRemoveUntil(
+                          context, RouteName.login, (route) => false);
+                    }),
               ],
             ),
           ),

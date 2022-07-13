@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_place_picker_mb/google_maps_place_picker.dart';
@@ -19,13 +21,12 @@ class SignUpForm extends StatefulWidget {
 
 class _SignUpFormState extends State<SignUpForm> {
   final _formKey = GlobalKey<FormState>();
-  String phoneNumber = '';
+
   String name = '';
   String referralCode = '';
   String location = '';
   bool isLoading = false;
   final TextEditingController _locationController = TextEditingController();
-  final TextEditingController _phoneNumberController = TextEditingController();
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _referralCodeController = TextEditingController();
 
@@ -120,7 +121,7 @@ class _SignUpFormState extends State<SignUpForm> {
                       ],
                     ),
                     const SizedBox(height: 20),
-                    const Text("create new account",
+                    const Text("Register",
                         style: TextStyle(
                             fontWeight: FontWeight.w600,
                             fontSize: 18,
@@ -128,39 +129,6 @@ class _SignUpFormState extends State<SignUpForm> {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const SizedBox(
-                          height: 25,
-                        ),
-                        Row(children: [
-                          const SizedBox(width: 5),
-                          Image.asset("assets/flag-india.png"),
-                          const Text(
-                            " (+91)",
-                            style: TextStyle(
-                                fontWeight: FontWeight.w500,
-                                fontSize: 14,
-                                color: Colors.white),
-                          ),
-                          const SizedBox(width: 10),
-                          Flexible(
-                            child: CustomNeumorphicTextField(
-                              controller: _phoneNumberController,
-                              borderradius: 30,
-                              hint: 'Enter your number',
-                              onChanged: (value) {
-                                phoneNumber = value;
-                              },
-                              validator: (number) {
-                                if (number == null ||
-                                    number.isEmpty ||
-                                    number.length != 10) {
-                                  return "Enter Correct Mobile Number";
-                                }
-                                return null;
-                              },
-                            ),
-                          ),
-                        ]),
                         const SizedBox(
                           height: 30,
                         ),
@@ -220,7 +188,7 @@ class _SignUpFormState extends State<SignUpForm> {
                         CustomNeumorphicTextField(
                           controller: _referralCodeController,
                           borderradius: 30,
-                          hint: '    Referral Code (optional)',
+                          hint: 'Referral Code (optional)',
                           onChanged: (value) {
                             referralCode = value;
                           },
@@ -231,15 +199,18 @@ class _SignUpFormState extends State<SignUpForm> {
                           height: 43,
                           child: CustomNeumorphicButtom(
                             borderRadius: 30,
-                            buttonText: 'Sign In',
+                            buttonText: 'Submit',
                             buttonColor: const Color(0xFF2AB0E4),
                             shadowColor: Colors.white.withOpacity(0.5),
-                            onTap: () {
+                            onTap: () async {
                               if (_formKey.currentState!.validate()) {
-                                print(_nameController.text);
-                                print(_phoneNumberController.text);
-                                print(_locationController.text);
-                                Navigator.pushNamed(context, RouteName.otp);
+                                setState(() => isLoading = true);
+                                await registerUser(_nameController.text,
+                                    _locationController.text);
+                                setState(() => isLoading = false);
+
+                                Navigator.pushNamed(
+                                    context, RouteName.bottomBar);
                               }
                             },
                           ),
@@ -295,6 +266,24 @@ class _SignUpFormState extends State<SignUpForm> {
         ),
       ),
     );
+  }
+
+  Future<void> registerUser(String name, String location) async {
+    try {
+      User? _user = FirebaseAuth.instance.currentUser;
+      String? userId = _user?.uid;
+      String? phoneNumber = _user?.phoneNumber;
+      await FirebaseFirestore.instance.collection('users').doc(userId).set(
+        {
+          'name': name,
+          'uid': userId,
+          'location': location,
+          'phone': phoneNumber,
+        },
+      );
+    } catch (e) {
+      print(e);
+    }
   }
 }
 

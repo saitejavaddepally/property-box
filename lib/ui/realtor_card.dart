@@ -1,44 +1,26 @@
 import 'package:flutter/material.dart';
 
 import '../components/custom_button.dart';
-import '../components/custom_title.dart';
+import '../route_generator.dart';
 import '../theme/colors.dart';
 
 class RealtorCard extends StatefulWidget {
-  const RealtorCard({Key? key}) : super(key: key);
+  final Map data;
+  const RealtorCard({required this.data, Key? key}) : super(key: key);
 
   @override
   State<RealtorCard> createState() => _RealtorCardState();
 }
 
 class _RealtorCardState extends State<RealtorCard> {
-  List pages = [const RealtorPage(), const RealtorPage()];
+  PageController? _pageController;
   Color color = CustomColors.dark;
 
   @override
   void initState() {
-    //_updateState();
+    _pageController = PageController(initialPage: widget.data['index']);
     super.initState();
   }
-
-  // void _updateState() {
-  //   final style = SystemUiOverlayStyle(
-  //     systemNavigationBarColor: CustomColors.dark,
-  //     systemNavigationBarIconBrightness: Brightness.light,
-  //   );
-  //   SystemChrome.setSystemUIOverlayStyle(style);
-  // }
-
-  // @override
-  // void dispose() {
-  //   var brightness = SchedulerBinding.instance!.window.platformBrightness;
-  //   bool isDarkMode = brightness == Brightness.dark;
-  //   print(isDarkMode);
-  //   SystemUiOverlayStyle value =
-  //       (!isDarkMode) ? SystemUiOverlayStyle.dark : SystemUiOverlayStyle.light;
-  //   SystemChrome.setSystemUIOverlayStyle(value);
-  //   super.dispose();
-  // }
 
   @override
   Widget build(BuildContext context) {
@@ -47,15 +29,18 @@ class _RealtorCardState extends State<RealtorCard> {
         body: SafeArea(
             child: Stack(children: [
           PageView.builder(
-            itemCount: 2,
-            onPageChanged: (int page) {
-              // setState(() {
-              //   // color = colorList[page];
-              // });
-            },
+            itemCount: widget.data['data'].length,
+            controller: _pageController,
+            onPageChanged: (int page) {},
             scrollDirection: Axis.vertical,
             itemBuilder: (context, index) {
-              return pages[index];
+              final currentData = widget.data['data'][index];
+              return RealtorPage(
+                image: currentData['image'][0],
+                onTapChat: () {
+                  Navigator.pushNamed(context, '');
+                },
+              );
             },
           ),
         ])));
@@ -63,7 +48,10 @@ class _RealtorCardState extends State<RealtorCard> {
 }
 
 class RealtorPage extends StatefulWidget {
-  const RealtorPage({Key? key}) : super(key: key);
+  final String image;
+  final void Function() onTapChat;
+  const RealtorPage({required this.image, required this.onTapChat, Key? key})
+      : super(key: key);
 
   @override
   State<RealtorPage> createState() => _RealtorPageState();
@@ -100,11 +88,11 @@ class _RealtorPageState extends State<RealtorPage> {
   @override
   Widget build(BuildContext context) {
     var iconFunctionalities = [
-      () => Navigator.pushNamed(context, '/location'),
-      () => Navigator.pushNamed(context, '/gallery'),
-      () => Navigator.pushNamed(context, '/tour'),
-      () => Navigator.pushNamed(context, '/documents'),
-      () => Navigator.pushNamed(context, '/emi'),
+      () => Navigator.pushNamed(context, RouteName.location),
+      () => Navigator.pushNamed(context, RouteName.gallery),
+      () => Navigator.pushNamed(context, RouteName.tour),
+      () => Navigator.pushNamed(context, RouteName.documents),
+      () => Navigator.pushNamed(context, RouteName.emi),
       () => Navigator.pushNamed(context, '/agent'),
     ];
     return Stack(children: [
@@ -140,7 +128,10 @@ class _RealtorPageState extends State<RealtorPage> {
                 child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Image.asset("assets/slider_1.png"),
+                      SizedBox(
+                          width: (constraints.maxWidth * 0.7) - 50,
+                          height: 210,
+                          child: Image.network(widget.image, fit: BoxFit.fill)),
                       const SizedBox(height: 60),
                       const InfoText(text1: 'Type :', text2: 'Shop'),
                       const SizedBox(height: 20),
@@ -178,7 +169,7 @@ class _RealtorPageState extends State<RealtorPage> {
           child: Row(children: [
             CustomButton(
                     text: 'chat_black',
-                    onClick: () {},
+                    onClick: widget.onTapChat,
                     height: 40,
                     width: 40,
                     isIcon: true,

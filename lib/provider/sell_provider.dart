@@ -45,3 +45,11 @@ class SellScreenProvider extends ChangeNotifier {
     notifyListeners();
   }
 }
+
+class PageNumberProvider extends ChangeNotifier {
+  int page = 0;
+  void onPageNumberChanged(pageNumber, reason) {
+    page = pageNumber;
+    notifyListeners();
+  }
+}
