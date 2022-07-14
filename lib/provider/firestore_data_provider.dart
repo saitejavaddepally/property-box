@@ -3,32 +3,67 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:property_box/services/auth_methods.dart';
 
 class FirestoreDataProvider {
-  Future<List> getAllProperties() async {
+  final _userCollRef = FirebaseFirestore.instance.collection('users');
+  // Future<List> getAllProperties() async {
+  //   List propertyData = [];
+  //   String? userId = await AuthMethods().getUserId();
+  //   final collRef = FirebaseFirestore.instance
+  //       .collection('sell_plots')
+  //       .doc(userId)
+  //       .collection('standlone');
+
+  //   final querySnap = await collRef.get();
+
+  //   for (var item in querySnap.docs) {
+  //     final plotNo = item.id;
+  //     final info = await collRef
+  //         .doc(plotNo)
+  //         .collection('pages_info')
+  //         .where('box_enabled', isEqualTo: 1)
+  //         .get();
+
+  //     final imageList = await getAllImage(userId, plotNo);
+  //     imageList.removeWhere((value) => value == null);
+
+  //     if (info.docs.isNotEmpty) {
+  //       propertyData.add(info.docs.first.data()..addAll({'image': imageList}));
+  //     }
+  //   }
+  //   return propertyData;
+  // }
+
+  Future<void> getAllProperties() async {
     List propertyData = [];
-    String? userId = await AuthMethods().getUserId();
-    final collRef = FirebaseFirestore.instance
-        .collection('sell_plots')
-        .doc(userId)
-        .collection('standlone');
 
-    final querySnap = await collRef.get();
-
-    for (var item in querySnap.docs) {
-      final plotNo = item.id;
-      final info = await collRef
-          .doc(plotNo)
-          .collection('pages_info')
-          .where('box_enabled', isEqualTo: 1)
-          .get();
-
-      final imageList = await getAllImage(userId, plotNo);
-      imageList.removeWhere((value) => value == null);
-
-      if (info.docs.isNotEmpty) {
-        propertyData.add(info.docs.first.data()..addAll({'image': imageList}));
-      }
+    final _querySnapUser = await _userCollRef.get();
+    for (final _user in _querySnapUser.docs) {
+      print(_user.id);
     }
-    return propertyData;
+
+    // String? userId = await AuthMethods().getUserId();
+    // final collRef = FirebaseFirestore.instance
+    //     .collection('sell_plots')
+    //     .doc(userId)
+    //     .collection('standlone');
+
+    // final querySnap = await collRef.get();
+
+    // for (var item in querySnap.docs) {
+    //   final plotNo = item.id;
+    //   final info = await collRef
+    //       .doc(plotNo)
+    //       .collection('pages_info')
+    //       .where('box_enabled', isEqualTo: 1)
+    //       .get();
+
+    //   final imageList = await getAllImage(userId, plotNo);
+    //   imageList.removeWhere((value) => value == null);
+
+    //   if (info.docs.isNotEmpty) {
+    //     propertyData.add(info.docs.first.data()..addAll({'image': imageList}));
+    //   }
+    // }
+    // return propertyData;
   }
 
   Future<List<dynamic>> getAllImage(userId, String plotNo) async {
