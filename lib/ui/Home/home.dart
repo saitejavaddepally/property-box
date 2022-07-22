@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:property_box/provider/firestore_data_provider.dart';
 import 'package:property_box/route_generator.dart';
 import 'package:property_box/services/auth_methods.dart';
 

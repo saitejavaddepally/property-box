@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:page_transition/page_transition.dart';
+import 'package:property_box/ui/Home/Chat/chat_detail.dart';
 import 'package:property_box/ui/Home/bottom_navigation.dart';
 import 'package:property_box/ui/documents.dart';
 import 'package:property_box/ui/emi.dart';
 import 'package:property_box/ui/gallery.dart';
+import 'package:property_box/ui/interested.dart';
 import 'package:property_box/ui/location.dart';
 import 'package:property_box/ui/login.dart';
 import 'package:property_box/ui/otp.dart';
@@ -22,6 +25,8 @@ class RouteName {
   static const String emi = '/emi';
   static const String documents = '/documents';
   static const String tour = '/tour';
+  static const String chatDetail = '/chat_detail';
+  static const String interested = '/interested';
 }
 
 class RouteGenerator {
@@ -32,9 +37,14 @@ class RouteGenerator {
 
     switch (settings.name) {
       case RouteName.bottomBar:
-        return PageTransition(
-            child: BottomBar(index: 0, isIndexGiven: false),
-            type: PageTransitionType.leftToRight);
+        {
+          if (args is int) {
+            return PageTransition(
+                child: BottomBar(index: args),
+                type: PageTransitionType.leftToRight);
+          }
+          return _errorRoute();
+        }
 
       case RouteName.otp:
         {
@@ -49,26 +59,73 @@ class RouteGenerator {
         return PageTransition(
             child: const SignUpForm(), type: PageTransitionType.leftToRight);
 
+      case RouteName.interested:
+        {
+          if (args is Map<String, dynamic>) {
+            return PageTransition(
+                child: Interested(data: args),
+                type: PageTransitionType.leftToRight);
+          }
+          return _errorRoute();
+        }
+
       case RouteName.location:
-        return PageTransition(
-            child: const LocationScreen(),
-            type: PageTransitionType.leftToRight);
+        {
+          if (args is List) {
+            return PageTransition(
+                child: LocationScreen(latitude: args[0], longitude: args[1]),
+                type: PageTransitionType.leftToRight);
+          }
+          return _errorRoute();
+        }
 
       case RouteName.gallery:
-        return PageTransition(
-            child: const GalleryScreen(), type: PageTransitionType.leftToRight);
+        {
+          if (args is List) {
+            return PageTransition(
+                child: GalleryScreen(images: args),
+                type: PageTransitionType.leftToRight);
+          }
+          return _errorRoute();
+        }
 
       case RouteName.emi:
-        return PageTransition(
-            child: const EMI(), type: PageTransitionType.leftToRight);
+        {
+          if (args is int) {
+            return PageTransition(
+                child: EMI(plotPrice: args),
+                type: PageTransitionType.leftToRight);
+          }
+          return _errorRoute();
+        }
 
       case RouteName.documents:
-        return PageTransition(
-            child: const Documents(), type: PageTransitionType.leftToRight);
+        {
+          if (args is List) {
+            return PageTransition(
+                child: Documents(docs: args),
+                type: PageTransitionType.leftToRight);
+          }
+          return _errorRoute();
+        }
 
       case RouteName.tour:
-        return PageTransition(
-            child: const Tour(), type: PageTransitionType.leftToRight);
+        {
+          if (args is List) {
+            return PageTransition(
+                child: Tour(videos: args),
+                type: PageTransitionType.leftToRight);
+          }
+          return _errorRoute();
+        }
+
+      case RouteName.chatDetail:
+        if (args is List) {
+          return PageTransition(
+              child: ChatDetail(friendUid: args[0], friendName: args[1]),
+              type: PageTransitionType.leftToRight);
+        }
+        return _errorRoute();
 
       case RouteName.realtorCard:
         {

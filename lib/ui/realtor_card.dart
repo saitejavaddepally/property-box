@@ -1,4 +1,9 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:property_box/provider/firestore_data_provider.dart';
+import 'package:property_box/services/auth_methods.dart';
 
 import '../components/custom_button.dart';
 import '../route_generator.dart';
@@ -36,39 +41,107 @@ class _RealtorCardState extends State<RealtorCard> {
             itemBuilder: (context, index) {
               final currentData = widget.data['data'][index];
               return RealtorPage(
-                image: currentData['image'][0],
-                onTapChat: () {
-                  Navigator.pushNamed(context, '');
-                },
-              );
+                  image: currentData['images'][0],
+                  onTapInterested: () async {
+                    String? _plotOwnerUid = currentData['uid'];
+                    String? _currentUid = await AuthMethods().getUserId();
+                    String _plotProfilePicture =
+                        currentData['plotProfilePicture'];
+                    String _plotNo = currentData['plotNo'];
+                    String _propertyId = currentData['propertyId'];
+
+                    if (_plotOwnerUid == _currentUid) {
+                      Fluttertoast.showToast(msg: 'This is your property');
+                    } else {
+                      final result = await FirestoreDataProvider()
+                          .isLeadAlreadyCreated(
+                              _plotOwnerUid!, _currentUid!, _propertyId);
+                      if (result == true) {
+                        Fluttertoast.showToast(
+                            msg:
+                                "You already show's your interest in this propery");
+                      } else {
+                        await Navigator.pushNamed(context, RouteName.interested,
+                            arguments: {
+                              'plotOwnerUid': _plotOwnerUid,
+                              'interestedUserUid': _currentUid,
+                              'profile': _plotProfilePicture,
+                              'plotNo': _plotNo,
+                              'propertyId': _propertyId
+                            });
+                        await EasyLoading.showSuccess(
+                            "Lead Created Successfully",
+                            duration: const Duration(seconds: 3));
+                      }
+                    }
+                  },
+                  onTapChat: () async {
+                    String? _currentUserId = await AuthMethods().getUserId();
+                    String? _userId = currentData['uid'];
+                    String? uname =
+                        await FirestoreDataProvider().getUserName(_userId);
+                    if (_currentUserId == _userId) {
+                      Fluttertoast.showToast(msg: "You can't chat to own");
+                    } else {
+                      Navigator.pushNamed(context, RouteName.chatDetail,
+                          arguments: [_userId, uname ?? '']);
+                    }
+                  },
+                  onTapLocation: () {
+                    final _latitude = currentData['latitude'];
+                    final _longitude = currentData['longitude'];
+                    Navigator.pushNamed(context, RouteName.location,
+                        arguments: [_latitude, _longitude]);
+                  },
+                  onTapGallery: () {
+                    Navigator.pushNamed(context, RouteName.gallery,
+                        arguments: currentData['images']);
+                  },
+                  onTapEmi: () {
+                    Navigator.pushNamed(context, RouteName.emi,
+                        arguments: int.parse(currentData['price']));
+                  },
+                  onTapDocuments: () {
+                    Navigator.pushNamed(context, RouteName.documents,
+                        arguments: [
+                          currentData['docs'],
+                          currentData['docNames']
+                        ]);
+                  },
+                  onTapTour: () {
+                    Navigator.pushNamed(context, RouteName.tour, arguments: [
+                      currentData['videos'],
+                      currentData['videoNames']
+                    ]);
+                  });
             },
           ),
         ])));
   }
 }
 
-class RealtorPage extends StatefulWidget {
+class RealtorPage extends StatelessWidget {
   final String image;
   final void Function() onTapChat;
-  const RealtorPage({required this.image, required this.onTapChat, Key? key})
+  final void Function() onTapLocation;
+  final void Function() onTapGallery;
+  final void Function() onTapEmi;
+  final void Function() onTapDocuments;
+  final void Function() onTapTour;
+  final void Function() onTapInterested;
+
+  RealtorPage(
+      {required this.image,
+      required this.onTapChat,
+      required this.onTapLocation,
+      required this.onTapGallery,
+      required this.onTapEmi,
+      required this.onTapDocuments,
+      required this.onTapTour,
+      required this.onTapInterested,
+      Key? key})
       : super(key: key);
-
-  @override
-  State<RealtorPage> createState() => _RealtorPageState();
-}
-
-class _RealtorPageState extends State<RealtorPage> {
-  @override
-  void initState() {
-    // final style = SystemUiOverlayStyle(
-    //   systemNavigationBarColor: CustomColors.dark,
-    //   systemNavigationBarIconBrightness: Brightness.light,
-    // );
-    // SystemChrome.setSystemUIOverlayStyle(style);
-    super.initState();
-  }
-
-  var textList = [
+  final textList = [
     '20% Construction & 80% space',
     'Total 750 flat in 3 towers',
     'Exclusive club house',
@@ -76,25 +149,8 @@ class _RealtorPageState extends State<RealtorPage> {
     'Golf track and playground'
   ];
 
-  var iconMap = {
-    'location': 'assets/location.png',
-    'gallery': 'assets/img_preview.png',
-    'tour': 'assets/compass.png',
-    'documents': 'assets/documents.png',
-    'eml': 'assets/credit_card.png',
-    'agent': 'assets/agent.png'
-  };
-
   @override
   Widget build(BuildContext context) {
-    var iconFunctionalities = [
-      () => Navigator.pushNamed(context, RouteName.location),
-      () => Navigator.pushNamed(context, RouteName.gallery),
-      () => Navigator.pushNamed(context, RouteName.tour),
-      () => Navigator.pushNamed(context, RouteName.documents),
-      () => Navigator.pushNamed(context, RouteName.emi),
-      () => Navigator.pushNamed(context, '/agent'),
-    ];
     return Stack(children: [
       Column(children: [
         Padding(
@@ -131,7 +187,8 @@ class _RealtorPageState extends State<RealtorPage> {
                       SizedBox(
                           width: (constraints.maxWidth * 0.7) - 50,
                           height: 210,
-                          child: Image.network(widget.image, fit: BoxFit.fill)),
+                          child: CachedNetworkImage(
+                              imageUrl: image, fit: BoxFit.fill)),
                       const SizedBox(height: 60),
                       const InfoText(text1: 'Type :', text2: 'Shop'),
                       const SizedBox(height: 20),
@@ -149,13 +206,36 @@ class _RealtorPageState extends State<RealtorPage> {
                 child: Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      for (int i = 0; i < iconMap.length; i++)
-                        GestureDetector(
-                          onTap: iconFunctionalities[i],
-                          child: IconWithText(
-                              text: iconMap.keys.toList()[i],
-                              image: iconMap.values.toList()[i]),
-                        )
+                      GestureDetector(
+                        onTap: onTapLocation,
+                        child: const IconWithText(
+                            text: "location", image: 'assets/location.png'),
+                      ),
+                      GestureDetector(
+                        onTap: onTapGallery,
+                        child: const IconWithText(
+                            text: "gallery", image: 'assets/img_preview.png'),
+                      ),
+                      GestureDetector(
+                        onTap: onTapTour,
+                        child: const IconWithText(
+                            text: "tour", image: 'assets/compass.png'),
+                      ),
+                      GestureDetector(
+                        onTap: onTapDocuments,
+                        child: const IconWithText(
+                            text: "documents", image: 'assets/documents.png'),
+                      ),
+                      GestureDetector(
+                        onTap: onTapEmi,
+                        child: const IconWithText(
+                            text: "emi", image: 'assets/credit_card.png'),
+                      ),
+                      GestureDetector(
+                        onTap: () {},
+                        child: const IconWithText(
+                            text: "agent", image: 'assets/agent.png'),
+                      ),
                     ]),
               ),
             ],
@@ -169,7 +249,7 @@ class _RealtorPageState extends State<RealtorPage> {
           child: Row(children: [
             CustomButton(
                     text: 'chat_black',
-                    onClick: widget.onTapChat,
+                    onClick: onTapChat,
                     height: 40,
                     width: 40,
                     isIcon: true,
@@ -182,7 +262,7 @@ class _RealtorPageState extends State<RealtorPage> {
                 child: CustomButton(
                         text: "I'm Interested",
                         textColor: Colors.black,
-                        onClick: () {},
+                        onClick: onTapInterested,
                         isNeu: false,
                         width: double.maxFinite,
                         height: 40,

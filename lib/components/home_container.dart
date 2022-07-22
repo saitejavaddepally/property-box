@@ -109,17 +109,21 @@ class HomeContainer extends StatelessWidget {
 
   final String text2;
   final bool isSecondText;
+  final bool isFirstText;
   final bool isGradient;
+  final bool isNeu;
   final LinearGradient? gradient;
   final void Function() onButtonClick;
   const HomeContainer(
-      {required this.text,
-      required this.image,
+      {required this.image,
       required this.buttonText,
       required this.onButtonClick,
+      this.text = '',
       this.containerColor,
       this.text2 = '',
+      this.isFirstText = true,
       this.isSecondText = false,
+      this.isNeu = true,
       this.textColor = const Color(0xFF1B1B1B),
       this.buttonWidth = 105,
       this.buttonTextColor = Colors.white,
@@ -152,12 +156,13 @@ class HomeContainer extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(text,
-                style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                    height: 1.4,
-                    color: Colors.white)),
+            if (isFirstText)
+              Text(text,
+                  style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                      height: 1.4,
+                      color: Colors.white)),
             (isSecondText)
                 ? Column(children: [
                     const SizedBox(height: 5),
@@ -180,6 +185,7 @@ class HomeContainer extends StatelessWidget {
                         width: buttonWidth,
                         textColor: buttonTextColor,
                         height: 40,
+                        isNeu: isNeu,
                         color: buttonColor)
                     .use(),
               ],

@@ -30,63 +30,6 @@ class _SignUpFormState extends State<SignUpForm> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _referralCodeController = TextEditingController();
 
-  Future<String?> getCurrentLocation() async {
-    try {
-      final location = GetUserLocation();
-      final Position position = await location.determinePosition();
-
-      final address = await location.getAddressFromCoordinates(
-          LatLng(position.latitude, position.longitude));
-      return address;
-    } on Exception catch (e) {
-      if (e.toString() == 'Location services are disabled.') {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-            content: Text("Please Turn On Location Service First")));
-      } else if (e.toString() == 'Location permissions are denied') {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-            content: Text(
-                "Please Allow Location Permission otherwise you didn't use this feature.")));
-      } else if (e.toString() ==
-          'Location permissions are permanently denied, we cannot request permissions.') {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-            content: Text(
-                "Sorry You are not allowed to use this feature because you didn't allow permission.")));
-      }
-      return null;
-    }
-  }
-
-  Future<String?> getMapLocation() async {
-    final String? result = await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => FutureBuilder<Position>(
-            future: GetUserLocation().determinePosition(),
-            builder: (context, snapshot) {
-              if (snapshot.hasData) {
-                return PlacePicker(
-                  apiKey: 'AIzaSyCBMs8s8SbqSXLzoygoqc20EvzqBY5wBX0',
-                  onPlacePicked: (result) {
-                    Navigator.of(context).pop(result.formattedAddress);
-                  },
-                  hintText: "Search",
-                  enableMapTypeButton: false,
-                  initialPosition:
-                      LatLng(snapshot.data!.latitude, snapshot.data!.longitude),
-                  useCurrentLocation: true,
-                );
-              } else if (snapshot.hasError) {
-                return Center(child: Text(snapshot.error.toString()));
-              } else {
-                return const Center(child: CircularProgressIndicator());
-              }
-            }),
-      ),
-    );
-
-    return result;
-  }
-
   @override
   Widget build(BuildContext context) {
     return ModalProgressHUD(
@@ -160,14 +103,16 @@ class _SignUpFormState extends State<SignUpForm> {
 
                             if (result == 1) {
                               setState(() => isLoading = true);
-                              final res = await getCurrentLocation();
+                              final res =
+                                  await GetUserLocation.getCurrentLocation();
                               setState(() => isLoading = false);
                               if (res != null && res.isNotEmpty) {
                                 _locationController.text = res;
                               }
                             }
                             if (result == 2) {
-                              final res = await getMapLocation();
+                              final res =
+                                  await GetUserLocation.getMapLocation(context);
                               if (res != null && res.isNotEmpty) {
                                 _locationController.text = res;
                               }

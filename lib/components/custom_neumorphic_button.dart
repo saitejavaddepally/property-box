@@ -6,10 +6,12 @@ class CustomNeumorphicButtom extends StatelessWidget {
   final Color buttonColor;
   final Color shadowColor;
   final double borderRadius;
+  final Color? textColor;
   const CustomNeumorphicButtom(
       {required this.buttonText,
       required this.buttonColor,
       required this.shadowColor,
+      this.textColor,
       this.borderRadius = 10,
       this.onTap,
       Key? key})
@@ -22,10 +24,8 @@ class CustomNeumorphicButtom extends StatelessWidget {
       child: Center(
         child: Text(
           buttonText,
-          style: const TextStyle(
-              fontWeight: FontWeight.w600,
-              fontSize: 14,
-              color: Color(0xFF202526)),
+          style: TextStyle(
+              fontWeight: FontWeight.w600, fontSize: 14, color: textColor),
         ),
       ),
       style: NeumorphicStyle(

@@ -1,7 +1,10 @@
 import 'dart:convert';
 
+import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:google_maps_place_picker_mb/google_maps_place_picker.dart';
 import 'package:http/http.dart' as http;
 
 class GetUserLocation {
@@ -45,6 +48,62 @@ class GetUserLocation {
     // continue accessing the position of the device.
     return await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.high);
+  }
+
+  static Future<String?> getCurrentLocation() async {
+    try {
+      final location = GetUserLocation();
+      final Position position = await location.determinePosition();
+
+      final address = await location.getAddressFromCoordinates(
+          LatLng(position.latitude, position.longitude));
+      return address;
+    } on Exception catch (e) {
+      if (e.toString() == 'Location services are disabled.') {
+        Fluttertoast.showToast(msg: "Please Turn On Location Service First");
+      } else if (e.toString() == 'Location permissions are denied') {
+        Fluttertoast.showToast(
+            msg:
+                "Please Allow Location Permission otherwise you didn't use this feature.");
+      } else if (e.toString() ==
+          'Location permissions are permanently denied, we cannot request permissions.') {
+        Fluttertoast.showToast(
+            msg:
+                "Sorry You are not allowed to use this feature because you didn't allow permission.");
+      }
+      return null;
+    }
+  }
+
+  static Future<String?> getMapLocation(BuildContext context) async {
+    final String? result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => FutureBuilder<Position>(
+            future: GetUserLocation().determinePosition(),
+            builder: (context, snapshot) {
+              if (snapshot.hasData) {
+                return PlacePicker(
+                  apiKey: 'AIzaSyCBMs8s8SbqSXLzoygoqc20EvzqBY5wBX0',
+                  onPlacePicked: (result) {
+                    Navigator.of(context).pop(result.formattedAddress);
+                  },
+                  hintText: "Search",
+                  enableMapTypeButton: false,
+                  initialPosition:
+                      LatLng(snapshot.data!.latitude, snapshot.data!.longitude),
+                  useCurrentLocation: true,
+                );
+              } else if (snapshot.hasError) {
+                return Center(child: Text(snapshot.error.toString()));
+              } else {
+                return const Center(child: CircularProgressIndicator());
+              }
+            }),
+      ),
+    );
+
+    return result;
   }
 
   Future<String> getAddressFromCoordinates(LatLng userLocation) async {

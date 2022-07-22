@@ -1,13 +1,12 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_neumorphic/flutter_neumorphic.dart';
 
-import '../helper/contants.dart';
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 
 import '../theme/colors.dart';
 
 class Documents extends StatefulWidget {
-  const Documents({Key? key}) : super(key: key);
+  final List docs;
+  const Documents({required this.docs, Key? key}) : super(key: key);
 
   @override
   State<Documents> createState() => _DocumentsState();
@@ -15,6 +14,12 @@ class Documents extends StatefulWidget {
 
 class _DocumentsState extends State<Documents> {
   bool isChecked = false;
+
+  @override
+  void initState() {
+    print(widget.docs);
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -35,11 +40,11 @@ class _DocumentsState extends State<Documents> {
             const SizedBox(height: 30),
             Flexible(
                 child: ListView.builder(
-                    itemCount: 2,
+                    itemCount: widget.docs[0].length,
                     itemBuilder: (context, index) => Padding(
                           padding: const EdgeInsets.only(bottom: 30.0),
                           child: Neumorphic(
-                            padding: EdgeInsets.all(7),
+                            padding: const EdgeInsets.all(7),
                             style: NeumorphicStyle(
                                 shape: NeumorphicShape.flat,
                                 color: CustomColors.dark,
@@ -57,7 +62,7 @@ class _DocumentsState extends State<Documents> {
                                         MaterialPageRoute(
                                             builder: (context) =>
                                                 SfPdfViewer.network(
-                                                  'https://code.visualstudio.com/shortcuts/keyboard-shortcuts-windows.pdf',
+                                                  widget.docs[0][index],
                                                   canShowPaginationDialog: true,
                                                   canShowScrollHead: true,
                                                   canShowPasswordDialog: true,
@@ -83,9 +88,9 @@ class _DocumentsState extends State<Documents> {
                                         letterSpacing: -0.15,
                                         color: CustomColors.lightBlue),
                                   ),
-                                  subtitle: const Text(
-                                    'Floor plans with setback',
-                                    style: TextStyle(
+                                  subtitle: Text(
+                                    widget.docs[1][index] ?? '',
+                                    style: const TextStyle(
                                         height: 1.3,
                                         fontWeight: FontWeight.w400,
                                         fontSize: 16,

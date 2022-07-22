@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:property_box/provider/firestore_data_provider.dart';
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -18,6 +19,7 @@ import 'package:flutter_chat_bubble/clippers/chat_bubble_clipper_6.dart';
 
 import '../../../components/custom_text_field.dart';
 import '../../../components/neu_circular_button.dart';
+import '../../../route_generator.dart';
 import '../../../services/loction_service.dart';
 import '../../../theme/colors.dart';
 
@@ -113,6 +115,14 @@ class _ChatDetailState extends State<ChatDetail> {
   //   super.initState();
   // }
 
+  @override
+  void initState() {
+    FirestoreDataProvider()
+        .clearParticularChatCounter(widget.friendUid)
+        .then((value) => null);
+    super.initState();
+  }
+
   void sendMessage(String message, String chatDocId,
       {String type = 'text', String fileName = ''}) {
     if (message.trim().isEmpty) return;
@@ -122,9 +132,23 @@ class _ChatDetailState extends State<ChatDetail> {
       'msg': message,
       'fileName': fileName,
       'type': type,
-    }).then((value) {
+    }).then((value) async {
       _textController.text = '';
+      await incrementCounter();
     });
+  }
+
+  Future<void> incrementCounter() async {
+    final docRef =
+        FirebaseFirestore.instance.collection('users').doc(widget.friendUid);
+
+    final docSnap = await docRef.get();
+    final val = docSnap.data()![currentUserId];
+    if (val == null) {
+      await docRef.update({currentUserId!: 1});
+    } else {
+      await docRef.update({currentUserId!: FieldValue.increment(1)});
+    }
   }
 
   Future pickImage(String chatDocId, BuildContext contest) async {
@@ -161,20 +185,17 @@ class _ChatDetailState extends State<ChatDetail> {
   }
 
   void sendLocation(String chatDocId, double lat, double long) {
-    chats
-        .doc(chatDocId)
-        .collection('messages')
-        .add({
-          'createdOn': FieldValue.serverTimestamp(),
-          'uid': currentUserId,
-          'lat': lat,
-          'long': long,
-          'type': "loc",
-        })
-        .then((value) {})
-        .catchError((error) {
-          print(error);
-        });
+    chats.doc(chatDocId).collection('messages').add({
+      'createdOn': FieldValue.serverTimestamp(),
+      'uid': currentUserId,
+      'lat': lat,
+      'long': long,
+      'type': "loc",
+    }).then((value) async {
+      await incrementCounter();
+    }).catchError((error) {
+      print(error);
+    });
   }
 
   void getLocation(String chatDocId) {
@@ -229,193 +250,210 @@ class _ChatDetailState extends State<ChatDetail> {
                 builder: (context, snapshot) {
                   if (snapshot.hasData) {
                     final list = snapshot.data!.docs;
-                    return Scaffold(
-                      key: _scaffoldKey,
-                      body: SafeArea(
-                          child: SizedBox(
-                        width: double.maxFinite,
-                        child: Column(
-                          children: [
-                            Expanded(
-                              child: ListView.builder(
-                                  itemCount: list.length,
-                                  reverse: true,
-                                  itemBuilder: (context, index) {
-                                    Map data = list[index].data();
 
-                                    return SizedBox(
-                                      width: double.maxFinite,
-                                      child: Padding(
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 15.0),
-                                        child: ChatBubble(
-                                            clipper: ChatBubbleClipper6(
-                                              nipSize: 0,
-                                              radius: 20,
-                                              type: isSender(
+                    return WillPopScope(
+                      onWillPop: () async {
+                        Navigator.pushNamedAndRemoveUntil(
+                            context, RouteName.bottomBar, (route) => false,
+                            arguments: 3);
+                        return true;
+                      },
+                      child: Scaffold(
+                        backgroundColor: CustomColors.dark,
+                        appBar: AppBar(
+                            title: Text(widget.friendName),
+                            backgroundColor: CustomColors.dark),
+                        key: _scaffoldKey,
+                        body: SafeArea(
+                            child: SizedBox(
+                          width: double.maxFinite,
+                          child: Column(
+                            children: [
+                              Expanded(
+                                child: ListView.builder(
+                                    itemCount: list.length,
+                                    reverse: true,
+                                    itemBuilder: (context, index) {
+                                      Map data = list[index].data();
+
+                                      return SizedBox(
+                                        width: double.maxFinite,
+                                        child: Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 15.0),
+                                          child: ChatBubble(
+                                              clipper: ChatBubbleClipper6(
+                                                nipSize: 0,
+                                                radius: 20,
+                                                type: isSender(
+                                                        data['uid'].toString())
+                                                    ? BubbleType.sendBubble
+                                                    : BubbleType.receiverBubble,
+                                              ),
+                                              alignment: getAlignment(
+                                                  data['uid'].toString()),
+                                              margin: const EdgeInsets.only(
+                                                  top: 20),
+                                              backGroundColor: isSender(
                                                       data['uid'].toString())
-                                                  ? BubbleType.sendBubble
-                                                  : BubbleType.receiverBubble,
-                                            ),
-                                            alignment: getAlignment(
-                                                data['uid'].toString()),
-                                            margin:
-                                                const EdgeInsets.only(top: 20),
-                                            backGroundColor:
-                                                isSender(data['uid'].toString())
-                                                    ? const Color(0xFF08C187)
-                                                    : const Color(0xffE7E7ED),
-                                            child: data['type'] == 'text'
-                                                ? Container(
-                                                    constraints: BoxConstraints(
-                                                      maxWidth:
-                                                          MediaQuery.of(context)
-                                                                  .size
-                                                                  .width *
-                                                              0.7,
-                                                    ),
-                                                    child: Column(
-                                                      children: [
-                                                        Row(
-                                                          mainAxisAlignment:
-                                                              MainAxisAlignment
-                                                                  .start,
-                                                          children: [
-                                                            Text(data['msg'],
+                                                  ? const Color(0xFF08C187)
+                                                  : const Color(0xffE7E7ED),
+                                              child: data['type'] == 'text'
+                                                  ? Container(
+                                                      constraints:
+                                                          BoxConstraints(
+                                                        maxWidth: MediaQuery.of(
+                                                                    context)
+                                                                .size
+                                                                .width *
+                                                            0.7,
+                                                      ),
+                                                      child: Column(
+                                                        children: [
+                                                          Row(
+                                                            mainAxisAlignment:
+                                                                MainAxisAlignment
+                                                                    .start,
+                                                            children: [
+                                                              Text(data['msg'],
+                                                                  style: TextStyle(
+                                                                      color: isSender(data['uid']
+                                                                              .toString())
+                                                                          ? Colors
+                                                                              .white
+                                                                          : Colors
+                                                                              .black),
+                                                                  maxLines: 100,
+                                                                  overflow:
+                                                                      TextOverflow
+                                                                          .ellipsis)
+                                                            ],
+                                                          ),
+                                                          Row(
+                                                            mainAxisAlignment:
+                                                                MainAxisAlignment
+                                                                    .end,
+                                                            children: [
+                                                              Text(
+                                                                data['createdOn'] ==
+                                                                        null
+                                                                    ? DateTime
+                                                                            .now()
+                                                                        .toString()
+                                                                    : data['createdOn']
+                                                                        .toDate()
+                                                                        .toString(),
                                                                 style: TextStyle(
+                                                                    fontSize:
+                                                                        10,
                                                                     color: isSender(data['uid']
                                                                             .toString())
                                                                         ? Colors
                                                                             .white
                                                                         : Colors
                                                                             .black),
-                                                                maxLines: 100,
-                                                                overflow:
-                                                                    TextOverflow
-                                                                        .ellipsis)
-                                                          ],
-                                                        ),
-                                                        Row(
-                                                          mainAxisAlignment:
-                                                              MainAxisAlignment
-                                                                  .end,
-                                                          children: [
-                                                            Text(
-                                                              data['createdOn'] ==
-                                                                      null
-                                                                  ? DateTime
-                                                                          .now()
-                                                                      .toString()
-                                                                  : data['createdOn']
-                                                                      .toDate()
-                                                                      .toString(),
-                                                              style: TextStyle(
-                                                                  fontSize: 10,
-                                                                  color: isSender(
-                                                                          data['uid']
-                                                                              .toString())
-                                                                      ? Colors
-                                                                          .white
-                                                                      : Colors
-                                                                          .black),
-                                                            )
-                                                          ],
-                                                        )
-                                                      ],
-                                                    ),
-                                                  )
-                                                : (data['type'] == 'loc')
-                                                    ? SizedBox(
-                                                        height: 250,
-                                                        width: 180,
-                                                        child: GoogleMap(
-                                                          markers: {
-                                                            Marker(
-                                                                markerId: MarkerId(LatLng(
-                                                                        data[
-                                                                            'lat'],
-                                                                        data[
-                                                                            'long'])
-                                                                    .toString()),
-                                                                position: LatLng(
-                                                                    data['lat'],
-                                                                    data[
-                                                                        'long']))
+                                                              )
+                                                            ],
+                                                          )
+                                                        ],
+                                                      ),
+                                                    )
+                                                  : (data['type'] == 'loc')
+                                                      ? SizedBox(
+                                                          height: 250,
+                                                          width: 180,
+                                                          child: GoogleMap(
+                                                            markers: {
+                                                              Marker(
+                                                                  markerId: MarkerId(LatLng(
+                                                                          data[
+                                                                              'lat'],
+                                                                          data[
+                                                                              'long'])
+                                                                      .toString()),
+                                                                  position: LatLng(
+                                                                      data[
+                                                                          'lat'],
+                                                                      data[
+                                                                          'long']))
+                                                            },
+                                                            onMapCreated:
+                                                                _onMapCreated,
+                                                            initialCameraPosition:
+                                                                CameraPosition(
+                                                              target: LatLng(
+                                                                  data['lat'],
+                                                                  data['long']),
+                                                              zoom: 11.0,
+                                                            ),
+                                                          ))
+                                                      : GestureDetector(
+                                                          onTap: () async {
+                                                            await openDocument(
+                                                                data);
                                                           },
-                                                          onMapCreated:
-                                                              _onMapCreated,
-                                                          initialCameraPosition:
-                                                              CameraPosition(
-                                                            target: LatLng(
-                                                                data['lat'],
-                                                                data['long']),
-                                                            zoom: 11.0,
+                                                          child: SizedBox(
+                                                            height: 80,
+                                                            width: 150,
+                                                            child: FittedBox(
+                                                                fit:
+                                                                    BoxFit.fill,
+                                                                child: RichText(
+                                                                    text: TextSpan(
+                                                                        children: [
+                                                                      TextSpan(
+                                                                          text: data['type'].toString().toUpperCase() +
+                                                                              " File\n"),
+                                                                      const TextSpan(
+                                                                          text:
+                                                                              "Tap to Open",
+                                                                          style:
+                                                                              TextStyle(fontSize: 5))
+                                                                    ]))),
                                                           ),
-                                                        ))
-                                                    : GestureDetector(
-                                                        onTap: () async {
-                                                          await openDocument(
-                                                              data);
-                                                        },
-                                                        child: SizedBox(
-                                                          height: 80,
-                                                          width: 150,
-                                                          child: FittedBox(
-                                                              fit: BoxFit.fill,
-                                                              child: RichText(
-                                                                  text: TextSpan(
-                                                                      children: [
-                                                                    TextSpan(
-                                                                        text: data['type'].toString().toUpperCase() +
-                                                                            " File\n"),
-                                                                    const TextSpan(
-                                                                        text:
-                                                                            "Tap to Open",
-                                                                        style: TextStyle(
-                                                                            fontSize:
-                                                                                5))
-                                                                  ]))),
-                                                        ),
-                                                      )),
-                                      ),
-                                    );
-                                  }),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.only(top: 10),
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceEvenly,
-                                children: [
-                                  const SizedBox(width: 10),
-                                  Expanded(
-                                      child: CustomTextField(
-                                    controller: _textController,
-                                    icon: GestureDetector(
-                                        onTap: () {
-                                          showModalBottomSheet(
-                                              context: context,
-                                              backgroundColor:
-                                                  Colors.transparent,
-                                              builder: (context) {
-                                                return customBottomSheet(
-                                                    chatDocId);
-                                              });
-                                        },
-                                        child: const Icon(
-                                            Icons.animation_rounded)),
-                                  )),
-                                  TextButton(
-                                      child: const Icon(Icons.send_sharp),
-                                      onPressed: () => sendMessage(
-                                          _textController.text, chatDocId))
-                                ],
+                                                        )),
+                                        ),
+                                      );
+                                    }),
                               ),
-                            ),
-                            const SizedBox(height: 10),
-                          ],
-                        ),
-                      )),
+                              Padding(
+                                padding: const EdgeInsets.only(top: 10),
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceEvenly,
+                                  children: [
+                                    const SizedBox(width: 10),
+                                    Expanded(
+                                        child: CustomTextField(
+                                      style:
+                                          const TextStyle(color: Colors.white),
+                                      controller: _textController,
+                                      icon: GestureDetector(
+                                          onTap: () {
+                                            showModalBottomSheet(
+                                                context: context,
+                                                backgroundColor:
+                                                    Colors.transparent,
+                                                builder: (context) {
+                                                  return customBottomSheet(
+                                                      chatDocId);
+                                                });
+                                          },
+                                          child: const Icon(
+                                              Icons.animation_rounded)),
+                                    )),
+                                    TextButton(
+                                        child: const Icon(Icons.send_sharp),
+                                        onPressed: () => sendMessage(
+                                            _textController.text, chatDocId))
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(height: 10),
+                            ],
+                          ),
+                        )),
+                      ),
                     );
                   } else if (snapshot.connectionState ==
                       ConnectionState.waiting) {
@@ -440,7 +478,7 @@ class _ChatDetailState extends State<ChatDetail> {
         padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 30),
         child: Row(mainAxisAlignment: MainAxisAlignment.spaceAround, children: [
           CircularNeumorphicButton(
-                  imageName: "Location",
+                  imageName: "location",
                   onTap: () {
                     getLocation(chatDocId);
                     Navigator.pop(context);

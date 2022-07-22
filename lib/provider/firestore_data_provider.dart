@@ -3,67 +3,149 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:property_box/services/auth_methods.dart';
 
 class FirestoreDataProvider {
-  final _userCollRef = FirebaseFirestore.instance.collection('users');
-  // Future<List> getAllProperties() async {
-  //   List propertyData = [];
-  //   String? userId = await AuthMethods().getUserId();
-  //   final collRef = FirebaseFirestore.instance
-  //       .collection('sell_plots')
-  //       .doc(userId)
-  //       .collection('standlone');
+  final _user = FirebaseFirestore.instance.collection('users');
+  final _chat = FirebaseFirestore.instance.collection('chats');
+  final _leads_box = FirebaseFirestore.instance.collection('leads_box');
 
-  //   final querySnap = await collRef.get();
+  final _sellPlots = FirebaseFirestore.instance.collection('sell_plots');
 
-  //   for (var item in querySnap.docs) {
-  //     final plotNo = item.id;
-  //     final info = await collRef
-  //         .doc(plotNo)
-  //         .collection('pages_info')
-  //         .where('box_enabled', isEqualTo: 1)
-  //         .get();
+  Future<Map<String, dynamic>?> getUserDetails() async {
+    String? userId = await AuthMethods().getUserId();
+    final docSnap = await _user.doc(userId).get();
+    if (docSnap.exists) {
+      return docSnap.data();
+    }
+    return {};
+  }
 
-  //     final imageList = await getAllImage(userId, plotNo);
-  //     imageList.removeWhere((value) => value == null);
+  Future<void> saveLead(
+      String? uidOfPropertyAdder, Map<String, dynamic> data) async {
+    try {
+      await FirebaseFirestore.instance
+          .collection('leads_box')
+          .doc(uidOfPropertyAdder)
+          .collection('standlone')
+          .add(data);
+    } catch (e) {
+      print(e);
+    }
+  }
 
-  //     if (info.docs.isNotEmpty) {
-  //       propertyData.add(info.docs.first.data()..addAll({'image': imageList}));
-  //     }
-  //   }
-  //   return propertyData;
-  // }
+  Future<bool> isLeadAlreadyCreated(
+      String plotOwnerUid, String interstedUserUid, String propertyId) async {
+    final querySnap = await _leads_box
+        .doc(plotOwnerUid)
+        .collection('standlone')
+        .where('interestedUserUid', isEqualTo: interstedUserUid)
+        .where('propertyId', isEqualTo: propertyId)
+        .get();
+    if (querySnap.docs.isNotEmpty) {
+      return true;
+    } else {
+      return false;
+    }
+  }
 
-  Future<void> getAllProperties() async {
+  Future<List> getAllProperties() async {
     List propertyData = [];
 
-    final _querySnapUser = await _userCollRef.get();
+    final _querySnapUser = await _user.get();
     for (final _user in _querySnapUser.docs) {
-      print(_user.id);
+      final userId = _user.id;
+      final _collRefPlots = _sellPlots.doc(userId).collection('standlone');
+      final _querySnapPlot = await _collRefPlots.get();
+
+      for (var item in _querySnapPlot.docs) {
+        final plotNo = item.id;
+        final info = await _collRefPlots
+            .doc(plotNo)
+            .collection('pages_info')
+            .where('box_enabled', isEqualTo: 1)
+            .get();
+
+        if (info.docs.isNotEmpty) {
+          final propertyId = info.docs.first.id;
+          propertyData.add(info.docs.first.data()
+            ..addAll({'plotNo': plotNo, 'propertyId': propertyId}));
+        }
+      }
     }
+    return propertyData;
+  }
 
-    // String? userId = await AuthMethods().getUserId();
-    // final collRef = FirebaseFirestore.instance
-    //     .collection('sell_plots')
-    //     .doc(userId)
-    //     .collection('standlone');
+  Future<String?> getUserName(String? userId) async {
+    final _data = await _user.doc(userId).get();
+    final uname = _data.data()?['name'];
+    return uname;
+  }
 
-    // final querySnap = await collRef.get();
+  Future<num> getAllChatCounter() async {
+    num _totalCounter = 0;
+    String? uid = await AuthMethods().getUserId();
+    final _currentUser = await _user.doc(uid).get();
+    final _currentUserData = _currentUser.data();
+    final _querySnapUser = await _user.get();
+    for (final u in _querySnapUser.docs) {
+      final id = u.id;
+      final count = _currentUserData?[id];
+      if (count == null) {
+      } else {
+        _totalCounter += count;
+      }
+    }
+    return _totalCounter;
+  }
 
-    // for (var item in querySnap.docs) {
-    //   final plotNo = item.id;
-    //   final info = await collRef
-    //       .doc(plotNo)
-    //       .collection('pages_info')
-    //       .where('box_enabled', isEqualTo: 1)
-    //       .get();
+  Future<num> getParticularChatCounter(String uid) async {
+    String? currentUser = await AuthMethods().getUserId();
+    final docSnap = await _user.doc(currentUser).get();
+    final result = docSnap.data()?[uid];
+    if (result == null) {
+      return 0;
+    } else {
+      return result;
+    }
+  }
 
-    //   final imageList = await getAllImage(userId, plotNo);
-    //   imageList.removeWhere((value) => value == null);
+  Future<void> clearParticularChatCounter(String uid) async {
+    try {
+      String? currentUser = await AuthMethods().getUserId();
+      await _user.doc(currentUser).update({uid: 0});
+    } catch (e) {
+      print(e);
+    }
+  }
 
-    //   if (info.docs.isNotEmpty) {
-    //     propertyData.add(info.docs.first.data()..addAll({'image': imageList}));
-    //   }
-    // }
-    // return propertyData;
+  Future<String> getLatestMessage(String friendUid) async {
+    String msg = "";
+    String? currentUid = await AuthMethods().getUserId();
+    final querySnapshot = await _chat
+        .where('users', isEqualTo: {friendUid: null, currentUid: null})
+        .limit(1)
+        .get();
+    if (querySnapshot.docs.isNotEmpty) {
+      final chatDocId = querySnapshot.docs.single.id;
+      final querySnap = await _chat
+          .doc(chatDocId)
+          .collection('messages')
+          .orderBy('createdOn', descending: true)
+          .limit(1)
+          .get();
+
+      if (querySnap.docs.isNotEmpty) {
+        final data = querySnap.docs.first.data();
+        if (data['type'] == 'image') {
+          msg = 'Image';
+        } else if (data['type'] == 'pdf') {
+          msg = 'Pdf';
+        } else if (data['type'] == 'loc') {
+          msg = "Location";
+        } else {
+          msg = data['msg'];
+        }
+      }
+    }
+    return msg;
   }
 
   Future<List<dynamic>> getAllImage(userId, String plotNo) async {

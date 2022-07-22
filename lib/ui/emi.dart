@@ -1,17 +1,15 @@
 import 'dart:math';
 
-import 'package:flutter/material.dart';
 import 'package:flutter_neumorphic/flutter_neumorphic.dart';
-import 'package:flutter_spinkit/flutter_spinkit.dart';
-import 'package:property_box/components/custom_selector.dart';
+import 'package:property_box/components/custom_neu_selector.dart';
 
 import '../components/custom_button.dart';
 import '../components/neu_circular_button.dart';
-import '../helper/contants.dart';
 import '../theme/colors.dart';
 
 class EMI extends StatefulWidget {
-  const EMI({Key? key}) : super(key: key);
+  final int plotPrice;
+  const EMI({required this.plotPrice, Key? key}) : super(key: key);
 
   @override
   State<EMI> createState() => _EMIState();
@@ -27,18 +25,7 @@ class _EMIState extends State<EMI> {
     '15 yrs',
     '20 yrs',
   ];
-  late String _tenureChosenValue = '5 yrs';
-
-  Future<int?> getCurrentPlotPrice() async {
-    // var number = await SharedPreferencesHelper().getCurrentPage();
-    // print("number is $number");
-    // List data = await FirestoreDataProvider()
-    //     .getPlotPagesInformation(int.parse(number!));
-    // String price = data[0]['price'];
-
-    // return int.parse(price);
-    return 10000;
-  }
+  String _tenureChosenValue = '5 yrs';
 
   int emi(int price, int years, double roi) {
     roi = roi / 12 / 100;
@@ -90,7 +77,7 @@ class _EMIState extends State<EMI> {
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(30),
                             ),
-                            child: CustomSelector(
+                            child: CustomNeuSelector(
                                     dropDownItems: _roiMenuItems,
                                     color: CustomColors.dark,
                                     onChanged: (number) {
@@ -116,7 +103,7 @@ class _EMIState extends State<EMI> {
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(30),
                             ),
-                            child: CustomSelector(
+                            child: CustomNeuSelector(
                                     dropDownItems: _tenureMenuItems,
                                     color: CustomColors.dark,
                                     onChanged: (year) {
@@ -130,78 +117,64 @@ class _EMIState extends State<EMI> {
                     ],
                   ),
                   const SizedBox(height: 20),
-                  FutureBuilder(
-                      future: getCurrentPlotPrice(),
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState != ConnectionState.done) {
-                          return const SpinKitThreeBounce(
-                            size: 30,
-                            color: Colors.white,
-                          );
-                        }
-
-                        final price = snapshot.data as int;
-                        return Neumorphic(
-                          style: NeumorphicStyle(
-                              color: Colors.white.withOpacity(0.4),
-                              shape: NeumorphicShape.flat,
-                              shadowLightColor: Colors.black,
-                              boxShape: NeumorphicBoxShape.roundRect(
-                                BorderRadius.circular(10),
-                              )),
-                          child: Container(
+                  Neumorphic(
+                    style: NeumorphicStyle(
+                        color: Colors.white.withOpacity(0.4),
+                        shape: NeumorphicShape.flat,
+                        shadowLightColor: Colors.black,
+                        boxShape: NeumorphicBoxShape.roundRect(
+                          BorderRadius.circular(10),
+                        )),
+                    child: Container(
+                      decoration: BoxDecoration(
+                          color: CustomColors.dark,
+                          borderRadius: BorderRadius.circular(10)),
+                      child: Column(
+                        children: [
+                          Container(
                             decoration: BoxDecoration(
-                                color: CustomColors.dark,
-                                borderRadius: BorderRadius.circular(10)),
-                            child: Column(
-                              children: [
-                                Container(
-                                  decoration: BoxDecoration(
-                                      color: HexColor('191E1F'),
-                                      borderRadius: const BorderRadius.only(
-                                          topRight: Radius.circular(10),
-                                          topLeft: Radius.circular(10))),
-                                  padding:
-                                      const EdgeInsets.symmetric(vertical: 12),
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 10),
-                                    child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: const [
-                                        Flexible(
-                                            child: TableTitleText(
-                                                text: '% of property')),
-                                        Flexible(
-                                          child: TableTitleText(
-                                            text: 'Amount',
-                                          ),
-                                        ),
-                                        Flexible(
-                                            child: TableTitleText(text: 'EMI')),
-                                      ],
+                                color: HexColor('191E1F'),
+                                borderRadius: const BorderRadius.only(
+                                    topRight: Radius.circular(10),
+                                    topLeft: Radius.circular(10))),
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            child: Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 10),
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: const [
+                                  Flexible(
+                                      child: TableTitleText(
+                                          text: '% of property')),
+                                  Flexible(
+                                    child: TableTitleText(
+                                      text: 'Amount',
                                     ),
                                   ),
-                                ),
-                                for (int i = 50; i <= 90; i += 10)
-                                  TableRow(
-                                      text1: '$i% of $price',
-                                      text2: getPercentagePrice(price, i)
-                                          .toString(),
-                                      text3: emi(
-                                              getPercentagePrice(price, i)
-                                                  .toInt(),
-                                              int.parse(_tenureChosenValue
-                                                  .substring(0, 2)),
-                                              double.parse(
-                                                  _roiChosenValue.toString()))
-                                          .toString()),
-                              ],
+                                  Flexible(child: TableTitleText(text: 'EMI')),
+                                ],
+                              ),
                             ),
                           ),
-                        );
-                      }),
+                          for (int i = 50; i <= 90; i += 10)
+                            TableRow(
+                                text1: '$i% of ${widget.plotPrice}',
+                                text2: getPercentagePrice(widget.plotPrice, i)
+                                    .toString(),
+                                text3: emi(
+                                        getPercentagePrice(widget.plotPrice, i)
+                                            .toInt(),
+                                        int.parse(
+                                            _tenureChosenValue.substring(0, 2)),
+                                        double.parse(
+                                            _roiChosenValue.toString()))
+                                    .toString()),
+                        ],
+                      ),
+                    ),
+                  ),
                   const SizedBox(height: 40),
                   Row(
                     children: [

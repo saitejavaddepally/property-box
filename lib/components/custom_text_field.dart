@@ -14,6 +14,8 @@ class CustomTextField extends StatelessWidget {
   final bool? isDense;
   final int? maxLength;
   final TextStyle? style;
+  final int? maxLines;
+  final Color? fillColor;
   const CustomTextField(
       {this.validator,
       this.onChanged,
@@ -26,9 +28,11 @@ class CustomTextField extends StatelessWidget {
       this.hint,
       this.isDense,
       this.maxLength,
+      this.maxLines = 1,
+      this.fillColor = const Color(0x0DFFFFFF),
       this.contentPadding =
           const EdgeInsets.symmetric(vertical: 17, horizontal: 20),
-      this.style,
+      this.style = const TextStyle(color: Colors.white),
       Key? key})
       : super(key: key);
 
@@ -42,6 +46,7 @@ class CustomTextField extends StatelessWidget {
       onTap: onTap,
       readOnly: readOnly,
       keyboardType: keyboardType,
+      maxLines: maxLines,
       style: style,
       cursorColor: Colors.white.withOpacity(0.1),
       decoration: InputDecoration(
@@ -54,7 +59,7 @@ class CustomTextField extends StatelessWidget {
             fontWeight: FontWeight.w500,
             fontSize: 16,
             color: Colors.white.withOpacity(0.3)),
-        fillColor: Colors.white.withOpacity(0.1),
+        fillColor: fillColor,
         filled: true,
         border: OutlineInputBorder(
             borderSide: BorderSide.none,

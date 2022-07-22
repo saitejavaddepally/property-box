@@ -4,8 +4,9 @@ import 'package:property_box/provider/sell_provider.dart';
 import 'package:property_box/route_generator.dart';
 import 'package:provider/provider.dart';
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
-import '../../components/custom_selector.dart';
+import '../../components/custom_neu_selector.dart';
 import '../../components/custom_title.dart';
 import '../../components/neu_circular_button.dart';
 import '../../provider/firestore_data_provider.dart';
@@ -282,7 +283,7 @@ class _SellScreenState extends State<SellScreen> {
                             children: [
                               Flexible(
                                 flex: 3,
-                                child: CustomSelector(
+                                child: CustomNeuSelector(
                                         dropDownItems: value.possessionDropDown,
                                         onChanged: value.onChangedPossession,
                                         color: CustomColors.dark,
@@ -295,7 +296,7 @@ class _SellScreenState extends State<SellScreen> {
                               const Spacer(flex: 1),
                               Flexible(
                                 flex: 2,
-                                child: CustomSelector(
+                                child: CustomNeuSelector(
                                         dropDownItems: value.sortDropDown,
                                         onChanged: value.onChangedSort,
                                         isPrefixIcon: true,
@@ -333,266 +334,284 @@ class _SellScreenState extends State<SellScreen> {
                                         ),
                                       ),
                                       const SizedBox(height: 10),
-                                      SizedBox(
-                                        height: 250,
-                                        child: ListView.builder(
-                                            itemCount: data.length,
-                                            itemBuilder: (context, index) {
-                                              final currentData = data[index];
-                                              final imageList =
-                                                  currentData['image'];
-                                              final propertyType =
-                                                  currentData['propertyType'] ??
-                                                      '';
-                                              final size =
-                                                  currentData['size'] ?? '';
-                                              final price =
-                                                  currentData['price'] ?? '';
-                                              final location =
-                                                  currentData['location'] ?? '';
-                                              return ChangeNotifierProvider(
-                                                  create: (context) =>
-                                                      PageNumberProvider(),
-                                                  builder: (context, child) {
-                                                    final pr = Provider.of<
-                                                            PageNumberProvider>(
-                                                        context,
-                                                        listen: false);
-                                                    return Container(
-                                                      margin:
-                                                          const EdgeInsets.only(
-                                                              bottom: 20),
-                                                      child: Neumorphic(
-                                                        style: NeumorphicStyle(
-                                                            color: CustomColors
-                                                                .dark,
-                                                            shadowLightColor:
-                                                                Colors.black,
-                                                            depth: 10,
-                                                            intensity: 0.5,
-                                                            lightSource:
-                                                                LightSource
-                                                                    .topLeft,
-                                                            shape:
-                                                                NeumorphicShape
-                                                                    .flat,
-                                                            boxShape:
-                                                                NeumorphicBoxShape
-                                                                    .roundRect(
-                                                              BorderRadius
-                                                                  .circular(10),
-                                                            )),
-                                                        child: Container(
-                                                            margin:
-                                                                const EdgeInsets
-                                                                    .all(5),
-                                                            decoration:
-                                                                BoxDecoration(
-                                                              borderRadius:
-                                                                  BorderRadius
-                                                                      .circular(
-                                                                          10),
-                                                              color: const Color(
-                                                                  0xFF1C1C1C),
-                                                            ),
-                                                            child: Column(
-                                                              crossAxisAlignment:
-                                                                  CrossAxisAlignment
-                                                                      .start,
-                                                              children: [
-                                                                Container(
-                                                                  height: 160,
-                                                                  width: double
-                                                                      .maxFinite,
-                                                                  decoration: const BoxDecoration(
-                                                                      borderRadius: BorderRadius.only(
-                                                                          topLeft: Radius.circular(
-                                                                              10),
-                                                                          topRight:
-                                                                              Radius.circular(10))),
-                                                                  child: Stack(
-                                                                      children: [
-                                                                        GestureDetector(
+                                      ListView.builder(
+                                          shrinkWrap: true,
+                                          physics:
+                                              const NeverScrollableScrollPhysics(),
+                                          itemCount: data.length,
+                                          itemBuilder: (context, index) {
+                                            final currentData = data[index];
+                                            final imageList =
+                                                currentData['images'];
+                                            final propertyType =
+                                                currentData['propertyType'] ??
+                                                    '';
+                                            final size =
+                                                currentData['size'] ?? '';
+                                            final price =
+                                                currentData['price'] ?? '';
+                                            final location =
+                                                currentData['location'] ?? '';
+                                            return ChangeNotifierProvider(
+                                                create: (context) =>
+                                                    PageNumberProvider(),
+                                                builder: (context, child) {
+                                                  final pr = Provider.of<
+                                                          PageNumberProvider>(
+                                                      context,
+                                                      listen: false);
+                                                  return Container(
+                                                    margin:
+                                                        const EdgeInsets.only(
+                                                            bottom: 20),
+                                                    child: Neumorphic(
+                                                      style: NeumorphicStyle(
+                                                          color:
+                                                              CustomColors.dark,
+                                                          shadowLightColor:
+                                                              Colors.black,
+                                                          depth: 10,
+                                                          intensity: 0.5,
+                                                          lightSource:
+                                                              LightSource
+                                                                  .topLeft,
+                                                          shape: NeumorphicShape
+                                                              .flat,
+                                                          boxShape:
+                                                              NeumorphicBoxShape
+                                                                  .roundRect(
+                                                            BorderRadius
+                                                                .circular(10),
+                                                          )),
+                                                      child: Container(
+                                                          margin:
+                                                              const EdgeInsets
+                                                                  .all(5),
+                                                          decoration:
+                                                              BoxDecoration(
+                                                            borderRadius:
+                                                                BorderRadius
+                                                                    .circular(
+                                                                        10),
+                                                            color: const Color(
+                                                                0xFF1C1C1C),
+                                                          ),
+                                                          child: Column(
+                                                            crossAxisAlignment:
+                                                                CrossAxisAlignment
+                                                                    .start,
+                                                            children: [
+                                                              Container(
+                                                                height: 160,
+                                                                width: double
+                                                                    .maxFinite,
+                                                                decoration: const BoxDecoration(
+                                                                    borderRadius: BorderRadius.only(
+                                                                        topLeft:
+                                                                            Radius.circular(
+                                                                                10),
+                                                                        topRight:
+                                                                            Radius.circular(10))),
+                                                                child: Stack(
+                                                                    children: [
+                                                                      GestureDetector(
+                                                                        onTap:
+                                                                            () {
+                                                                          Navigator.pushNamed(
+                                                                              context,
+                                                                              RouteName.realtorCard,
+                                                                              arguments: {
+                                                                                'data': data,
+                                                                                'index': index
+                                                                              });
+                                                                        },
+                                                                        child: CarouselSlider
+                                                                            .builder(
+                                                                          carouselController:
+                                                                              _carouselController,
+                                                                          itemCount:
+                                                                              imageList.length,
+                                                                          itemBuilder: (BuildContext context,
+                                                                              int itemIndex,
+                                                                              int pageViewIndex) {
+                                                                            return SizedBox(
+                                                                              height: 160,
+                                                                              width: double.maxFinite,
+                                                                              child: CachedNetworkImage(imageUrl: imageList[itemIndex], fit: BoxFit.fill),
+                                                                            );
+                                                                          },
+                                                                          options:
+                                                                              CarouselOptions(
+                                                                            height:
+                                                                                160,
+                                                                            autoPlayCurve:
+                                                                                Curves.easeIn,
+                                                                            viewportFraction:
+                                                                                1,
+                                                                            enableInfiniteScroll:
+                                                                                false,
+                                                                            onPageChanged:
+                                                                                pr.onPageNumberChanged,
+                                                                          ),
+                                                                        ),
+                                                                      ),
+                                                                      Align(
+                                                                        alignment:
+                                                                            Alignment.bottomCenter,
+                                                                        child:
+                                                                            Padding(
+                                                                          padding: EdgeInsets.only(
+                                                                              bottom: 10,
+                                                                              left: (MediaQuery.of(context).size.width / 2) - 48),
+                                                                          child:
+                                                                              Consumer<PageNumberProvider>(
+                                                                            builder: (context, value, child) =>
+                                                                                Row(
+                                                                              children: [
+                                                                                for (int i = 0; i < imageList.length; i++) (value.page == i) ? activeIndicator() : inactiveIndicator()
+                                                                              ],
+                                                                            ),
+                                                                          ),
+                                                                        ),
+                                                                      ),
+                                                                      Align(
+                                                                        alignment:
+                                                                            Alignment.centerLeft,
+                                                                        child:
+                                                                            GestureDetector(
                                                                           onTap:
                                                                               () {
-                                                                            Navigator.pushNamed(context,
-                                                                                RouteName.realtorCard, arguments: {
-                                                                              'data': data,
-                                                                              'index': index
-                                                                            });
+                                                                            _carouselController.previousPage(curve: Curves.easeIn);
                                                                           },
-                                                                          child:
-                                                                              CarouselSlider.builder(
-                                                                            carouselController:
-                                                                                _carouselController,
-                                                                            itemCount:
-                                                                                imageList.length,
-                                                                            itemBuilder: (BuildContext context,
-                                                                                int itemIndex,
-                                                                                int pageViewIndex) {
-                                                                              return SizedBox(
-                                                                                height: 160,
-                                                                                width: double.maxFinite,
-                                                                                child: Image.network(imageList[itemIndex], fit: BoxFit.fill),
-                                                                              );
-                                                                            },
-                                                                            options:
-                                                                                CarouselOptions(
-                                                                              height: 160,
-                                                                              autoPlayCurve: Curves.easeIn,
-                                                                              viewportFraction: 1,
-                                                                              enableInfiniteScroll: false,
-                                                                              onPageChanged: pr.onPageNumberChanged,
-                                                                            ),
-                                                                          ),
-                                                                        ),
-                                                                        Align(
-                                                                          alignment:
-                                                                              Alignment.bottomCenter,
-                                                                          child:
-                                                                              Padding(
-                                                                            padding:
-                                                                                EdgeInsets.only(bottom: 10, left: (MediaQuery.of(context).size.width / 2) - 48),
-                                                                            child:
-                                                                                Consumer<PageNumberProvider>(
-                                                                              builder: (context, value, child) => Row(
-                                                                                children: [
-                                                                                  for (int i = 0; i < imageList.length; i++) (value.page == i) ? activeIndicator() : inactiveIndicator()
-                                                                                ],
-                                                                              ),
-                                                                            ),
-                                                                          ),
-                                                                        ),
-                                                                        Align(
-                                                                          alignment:
-                                                                              Alignment.centerLeft,
-                                                                          child:
-                                                                              GestureDetector(
-                                                                            onTap:
-                                                                                () {
-                                                                              _carouselController.previousPage(curve: Curves.easeIn);
-                                                                            },
-                                                                            child: Container(
-                                                                                margin: const EdgeInsets.only(left: 5),
-                                                                                padding: const EdgeInsets.all(2),
-                                                                                decoration: BoxDecoration(color: Colors.white.withOpacity(0.3), borderRadius: BorderRadius.circular(15)),
-                                                                                child: const Icon(Icons.keyboard_arrow_left_rounded, color: Color(0xFF2AB0E4), size: 22)),
-                                                                          ),
-                                                                        ),
-                                                                        Align(
-                                                                          alignment:
-                                                                              Alignment.centerRight,
-                                                                          child:
-                                                                              GestureDetector(
-                                                                            onTap:
-                                                                                () {
-                                                                              _carouselController.nextPage(curve: Curves.easeIn);
-                                                                            },
-                                                                            child: Container(
-                                                                                margin: const EdgeInsets.only(right: 5),
-                                                                                padding: const EdgeInsets.all(2),
-                                                                                decoration: BoxDecoration(color: Colors.white.withOpacity(0.3), borderRadius: BorderRadius.circular(15)),
-                                                                                child: const Icon(Icons.keyboard_arrow_right_rounded, color: Color(0xFF2AB0E4), size: 22)),
-                                                                          ),
-                                                                        ),
-                                                                        Align(
-                                                                          alignment:
-                                                                              Alignment.topRight,
                                                                           child: Container(
-                                                                              margin: const EdgeInsets.only(right: 5, top: 5),
-                                                                              padding: const EdgeInsets.all(4),
-                                                                              decoration: BoxDecoration(color: Colors.white.withOpacity(0.3), borderRadius: BorderRadius.circular(30)),
-                                                                              child: const Icon(
-                                                                                Icons.favorite_border,
+                                                                              margin: const EdgeInsets.only(left: 5),
+                                                                              padding: const EdgeInsets.all(2),
+                                                                              decoration: BoxDecoration(color: Colors.white.withOpacity(0.3), borderRadius: BorderRadius.circular(15)),
+                                                                              child: const Icon(Icons.keyboard_arrow_left_rounded, color: Color(0xFF2AB0E4), size: 22)),
+                                                                        ),
+                                                                      ),
+                                                                      Align(
+                                                                        alignment:
+                                                                            Alignment.centerRight,
+                                                                        child:
+                                                                            GestureDetector(
+                                                                          onTap:
+                                                                              () {
+                                                                            _carouselController.nextPage(curve: Curves.easeIn);
+                                                                          },
+                                                                          child: Container(
+                                                                              margin: const EdgeInsets.only(right: 5),
+                                                                              padding: const EdgeInsets.all(2),
+                                                                              decoration: BoxDecoration(color: Colors.white.withOpacity(0.3), borderRadius: BorderRadius.circular(15)),
+                                                                              child: const Icon(Icons.keyboard_arrow_right_rounded, color: Color(0xFF2AB0E4), size: 22)),
+                                                                        ),
+                                                                      ),
+                                                                      Align(
+                                                                        alignment:
+                                                                            Alignment.topRight,
+                                                                        child: Container(
+                                                                            margin: const EdgeInsets.only(right: 5, top: 5),
+                                                                            padding: const EdgeInsets.all(4),
+                                                                            decoration: BoxDecoration(color: Colors.white.withOpacity(0.3), borderRadius: BorderRadius.circular(30)),
+                                                                            child: const Icon(
+                                                                              Icons.favorite_border,
+                                                                              color: Colors.white,
+                                                                              size: 25,
+                                                                            )),
+                                                                      )
+                                                                    ]),
+                                                              ),
+                                                              const SizedBox(
+                                                                  height: 15),
+                                                              Padding(
+                                                                padding:
+                                                                    const EdgeInsets
+                                                                            .only(
+                                                                        left:
+                                                                            10),
+                                                                child: Text(
+                                                                    "${propertyType ?? ''} ( $size )",
+                                                                    maxLines: 1,
+                                                                    overflow:
+                                                                        TextOverflow
+                                                                            .ellipsis,
+                                                                    style: const TextStyle(
+                                                                        fontWeight:
+                                                                            FontWeight
+                                                                                .w500,
+                                                                        fontSize:
+                                                                            16,
+                                                                        color: Colors
+                                                                            .white,
+                                                                        letterSpacing:
+                                                                            -0.15)),
+                                                              ),
+                                                              const SizedBox(
+                                                                  height: 5),
+                                                              Padding(
+                                                                padding:
+                                                                    const EdgeInsets
+                                                                            .only(
+                                                                        left:
+                                                                            10,
+                                                                        right:
+                                                                            10),
+                                                                child: Row(
+                                                                  children: [
+                                                                    Expanded(
+                                                                      child: Row(
+                                                                          children: [
+                                                                            const Icon(Icons.location_on,
                                                                                 color: Colors.white,
-                                                                                size: 25,
-                                                                              )),
+                                                                                size: 17),
+                                                                            Flexible(
+                                                                              child: Text(
+                                                                                location,
+                                                                                maxLines: 1,
+                                                                                overflow: TextOverflow.ellipsis,
+                                                                                style: const TextStyle(fontWeight: FontWeight.w400, fontSize: 14, letterSpacing: -0.15, color: Colors.white),
+                                                                              ),
+                                                                            )
+                                                                          ]),
+                                                                    ),
+                                                                    Row(
+                                                                      children: [
+                                                                        const Icon(
+                                                                            Icons
+                                                                                .currency_rupee_rounded,
+                                                                            color:
+                                                                                Color(0xFF2AB0E4),
+                                                                            size: 17),
+                                                                        Text(
+                                                                          price,
+                                                                          maxLines:
+                                                                              1,
+                                                                          overflow:
+                                                                              TextOverflow.ellipsis,
+                                                                          style: const TextStyle(
+                                                                              fontWeight: FontWeight.w400,
+                                                                              fontSize: 14,
+                                                                              letterSpacing: -0.15,
+                                                                              color: Colors.white),
                                                                         )
-                                                                      ]),
+                                                                      ],
+                                                                    ),
+                                                                  ],
                                                                 ),
-                                                                const SizedBox(
-                                                                    height: 15),
-                                                                Padding(
-                                                                  padding: const EdgeInsets
-                                                                          .only(
-                                                                      left: 10),
-                                                                  child: Text(
-                                                                      "${propertyType ?? ''} ( $size )",
-                                                                      maxLines:
-                                                                          1,
-                                                                      overflow:
-                                                                          TextOverflow
-                                                                              .ellipsis,
-                                                                      style: const TextStyle(
-                                                                          fontWeight: FontWeight
-                                                                              .w500,
-                                                                          fontSize:
-                                                                              16,
-                                                                          color: Colors
-                                                                              .white,
-                                                                          letterSpacing:
-                                                                              -0.15)),
-                                                                ),
-                                                                const SizedBox(
-                                                                    height: 5),
-                                                                Padding(
-                                                                  padding: const EdgeInsets
-                                                                          .only(
-                                                                      left: 10,
-                                                                      right:
-                                                                          10),
-                                                                  child: Row(
-                                                                    children: [
-                                                                      Expanded(
-                                                                        child: Row(
-                                                                            children: [
-                                                                              const Icon(Icons.location_on, color: Colors.white, size: 17),
-                                                                              Flexible(
-                                                                                child: Text(
-                                                                                  location,
-                                                                                  maxLines: 1,
-                                                                                  overflow: TextOverflow.ellipsis,
-                                                                                  style: const TextStyle(fontWeight: FontWeight.w400, fontSize: 14, letterSpacing: -0.15, color: Colors.white),
-                                                                                ),
-                                                                              )
-                                                                            ]),
-                                                                      ),
-                                                                      Row(
-                                                                        children: [
-                                                                          const Icon(
-                                                                              Icons.currency_rupee_rounded,
-                                                                              color: Color(0xFF2AB0E4),
-                                                                              size: 17),
-                                                                          Text(
-                                                                            price,
-                                                                            maxLines:
-                                                                                1,
-                                                                            overflow:
-                                                                                TextOverflow.ellipsis,
-                                                                            style: const TextStyle(
-                                                                                fontWeight: FontWeight.w400,
-                                                                                fontSize: 14,
-                                                                                letterSpacing: -0.15,
-                                                                                color: Colors.white),
-                                                                          )
-                                                                        ],
-                                                                      ),
-                                                                    ],
-                                                                  ),
-                                                                ),
-                                                                const SizedBox(
-                                                                    height: 20),
-                                                              ],
-                                                            )),
-                                                      ),
-                                                    );
-                                                  });
-                                            }),
-                                      )
+                                                              ),
+                                                              const SizedBox(
+                                                                  height: 20),
+                                                            ],
+                                                          )),
+                                                    ),
+                                                  );
+                                                });
+                                          })
                                     ],
                                   );
                                 } else {
-                                  return const SizedBox();
+                                  return const CustomTitle(
+                                      text: "No properties found");
                                 }
                               } else if (snapshot.hasError) {
                                 return const Center(

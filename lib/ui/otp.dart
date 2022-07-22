@@ -242,11 +242,14 @@ class _OtpState extends State<Otp> {
                                     bool result = await otpProvider
                                         .checkOtp(_verificationId!);
 
-                                    Navigator.pushNamed(
-                                        context,
-                                        (result == true)
-                                            ? RouteName.signUp
-                                            : RouteName.bottomBar);
+                                    if (result == true) {
+                                      Navigator.pushNamed(
+                                          context, RouteName.signUp);
+                                    } else {
+                                      Navigator.pushNamedAndRemoveUntil(context,
+                                          RouteName.bottomBar, (route) => false,
+                                          arguments: 0);
+                                    }
                                   } catch (e) {
                                     Fluttertoast.showToast(msg: e.toString());
                                     setState(() => isLoading = false);

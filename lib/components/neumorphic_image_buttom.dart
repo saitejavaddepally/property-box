@@ -20,7 +20,7 @@ class NeumorphicImageButton extends StatelessWidget {
               depth: 7,
               shadowLightColor: Colors.white.withOpacity(0.4),
               shape: NeumorphicShape.flat),
-          child: Image.asset(image)),
+          child: Image.asset(image, width: 24, height: 24)),
     );
   }
 }

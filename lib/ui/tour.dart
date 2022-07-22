@@ -1,13 +1,12 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_neumorphic/flutter_neumorphic.dart';
 import 'package:property_box/components/neumorphic_image_buttom.dart';
 import 'package:video_player/video_player.dart';
 
-import '../components/neu_circular_button.dart';
 import '../theme/colors.dart';
 
 class Tour extends StatefulWidget {
-  const Tour({Key? key}) : super(key: key);
+  final List videos;
+  const Tour({required this.videos, Key? key}) : super(key: key);
 
   @override
   State<Tour> createState() => _TourState();
@@ -16,6 +15,7 @@ class Tour extends StatefulWidget {
 class _TourState extends State<Tour> {
   @override
   Widget build(BuildContext context) {
+    print(widget.videos);
     return Scaffold(
         backgroundColor: CustomColors.dark,
         body: SafeArea(
@@ -47,12 +47,11 @@ class _TourState extends State<Tour> {
               const SizedBox(height: 20),
               Flexible(
                   child: ListView.builder(
-                      itemCount: 1,
+                      itemCount: widget.videos[0].length,
                       itemBuilder: (context, index) {
-                        var videoLink =
-                            'https://flutter.github.io/assets-for-api-docs/assets/videos/butterfly.mp4';
-
-                        return VideoPlayPage(videoLink: videoLink);
+                        return VideoPlayPage(
+                            videoLink: widget.videos[0][index],
+                            videoName: widget.videos[1][index]);
                       }))
             ]),
           ),
@@ -62,7 +61,10 @@ class _TourState extends State<Tour> {
 
 class VideoPlayPage extends StatefulWidget {
   final String videoLink;
-  const VideoPlayPage({required this.videoLink, Key? key}) : super(key: key);
+  final String videoName;
+  const VideoPlayPage(
+      {required this.videoLink, required this.videoName, Key? key})
+      : super(key: key);
 
   @override
   State<VideoPlayPage> createState() => _VideoPlayPageState();
@@ -74,11 +76,11 @@ class _VideoPlayPageState extends State<VideoPlayPage> {
 
   @override
   void initState() {
-    super.initState();
     _controller = VideoPlayerController.network(widget.videoLink);
     _initializeVideoPlayerFuture = _controller.initialize();
-    // Use the controller to loop the video.
     _controller.setLooping(true);
+
+    super.initState();
   }
 
   @override
@@ -91,6 +93,7 @@ class _VideoPlayPageState extends State<VideoPlayPage> {
 
   @override
   Widget build(BuildContext context) {
+    var _size = MediaQuery.of(context).size;
     return FutureBuilder(
       future: _initializeVideoPlayerFuture,
       builder: (context, snapshot) {
@@ -134,25 +137,28 @@ class _VideoPlayPageState extends State<VideoPlayPage> {
                         ),
                         const SizedBox(height: 10),
                         Row(
-                          children: const [
+                          children: [
                             Expanded(
-                              child: Text('Drawing room overview',
-                                  style: TextStyle(
+                              child: Text(widget.videoName,
+                                  style: const TextStyle(
                                       fontWeight: FontWeight.w400,
                                       fontSize: 16,
                                       color: Colors.white,
                                       letterSpacing: -0.15)),
                             ),
-                            NeumorphicImageButton(image: 'assets/download.png'),
-                            SizedBox(width: 10),
-                            NeumorphicImageButton(image: 'assets/notific.png'),
+                            const NeumorphicImageButton(
+                                image: 'assets/download.png'),
+                            const SizedBox(width: 10),
+                            const NeumorphicImageButton(
+                                image: 'assets/notific.png'),
                           ],
                         )
                       ],
                     ),
                     if (!_controller.value.isPlaying)
                       Padding(
-                        padding: const EdgeInsets.only(top: 60.0),
+                        padding: EdgeInsets.only(
+                            top: _controller.value.aspectRatio * 120),
                         child: Align(
                             alignment: Alignment.center,
                             child: GestureDetector(
