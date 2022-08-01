@@ -69,9 +69,6 @@ class _RealtorCardState extends State<RealtorCard> {
                               'plotNo': _plotNo,
                               'propertyId': _propertyId
                             });
-                        await EasyLoading.showSuccess(
-                            "Lead Created Successfully",
-                            duration: const Duration(seconds: 3));
                       }
                     }
                   },
@@ -209,7 +206,7 @@ class RealtorPage extends StatelessWidget {
                       GestureDetector(
                         onTap: onTapLocation,
                         child: const IconWithText(
-                            text: "location", image: 'assets/location.png'),
+                            text: "location", image: 'assets/Location.png'),
                       ),
                       GestureDetector(
                         onTap: onTapGallery,

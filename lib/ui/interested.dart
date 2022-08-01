@@ -221,7 +221,10 @@ class _InterestedState extends State<Interested> {
                                                 .saveLead(
                                                     widget.data['plotOwnerUid'],
                                                     data..addAll(widget.data));
-                                            await EasyLoading.dismiss();
+                                            EasyLoading.showSuccess(
+                                                "Lead Created Successfully",
+                                                duration:
+                                                    const Duration(seconds: 3));
                                             Navigator.pop(context);
                                           }
                                         },

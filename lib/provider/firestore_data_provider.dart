@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:property_box/services/auth_methods.dart';
 
@@ -71,6 +72,42 @@ class FirestoreDataProvider {
       }
     }
     return propertyData;
+  }
+
+  Future saveProperty(String docId, String uid) async {
+    String? userId = await AuthMethods().getUserId();
+    FirebaseFirestore.instance
+        .collection('saved_property')
+        .doc(userId)
+        .collection('standlone')
+        .add({
+      'propertyId': docId,
+      'propertyHolderUid': uid,
+    });
+  }
+
+  Stream<QuerySnapshot<Map<String, dynamic>>> isSavedProperty(
+      String propertyHolderUid, String propertyId) {
+    String? userId = FirebaseAuth.instance.currentUser?.uid;
+
+    return FirebaseFirestore.instance
+        .collection('saved_property')
+        .doc(userId)
+        .collection('standlone')
+        .where('propertyHolderUid', isEqualTo: propertyHolderUid)
+        .where('propertyId', isEqualTo: propertyId)
+        .snapshots();
+  }
+
+  Future removeSaved(String docId) async {
+    String? userId = FirebaseAuth.instance.currentUser?.uid;
+
+    await FirebaseFirestore.instance
+        .collection('saved_property')
+        .doc(userId)
+        .collection('standlone')
+        .doc(docId)
+        .delete();
   }
 
   Future<String?> getUserName(String? userId) async {

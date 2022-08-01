@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_neumorphic/flutter_neumorphic.dart';
 import 'package:property_box/components/custom_neu_text_field.dart';
 import 'package:property_box/provider/sell_provider.dart';
@@ -352,6 +353,11 @@ class _SellScreenState extends State<SellScreen> {
                                                 currentData['price'] ?? '';
                                             final location =
                                                 currentData['location'] ?? '';
+                                            final propertyHolderUid =
+                                                currentData['uid'];
+
+                                            final propertyId =
+                                                currentData['propertyId'];
                                             return ChangeNotifierProvider(
                                                 create: (context) =>
                                                     PageNumberProvider(),
@@ -506,19 +512,40 @@ class _SellScreenState extends State<SellScreen> {
                                                                               child: const Icon(Icons.keyboard_arrow_right_rounded, color: Color(0xFF2AB0E4), size: 22)),
                                                                         ),
                                                                       ),
-                                                                      Align(
-                                                                        alignment:
-                                                                            Alignment.topRight,
-                                                                        child: Container(
-                                                                            margin: const EdgeInsets.only(right: 5, top: 5),
-                                                                            padding: const EdgeInsets.all(4),
-                                                                            decoration: BoxDecoration(color: Colors.white.withOpacity(0.3), borderRadius: BorderRadius.circular(30)),
-                                                                            child: const Icon(
-                                                                              Icons.favorite_border,
-                                                                              color: Colors.white,
-                                                                              size: 25,
-                                                                            )),
-                                                                      )
+                                                                      StreamBuilder<
+                                                                              QuerySnapshot<
+                                                                                  Map<String,
+                                                                                      dynamic>>>(
+                                                                          stream: FirestoreDataProvider().isSavedProperty(
+                                                                              propertyHolderUid,
+                                                                              propertyId),
+                                                                          builder:
+                                                                              (context, snapshot) {
+                                                                            if (snapshot.hasData) {
+                                                                              return Align(
+                                                                                alignment: Alignment.topRight,
+                                                                                child: Container(
+                                                                                    margin: const EdgeInsets.only(right: 5, top: 5),
+                                                                                    padding: const EdgeInsets.all(4),
+                                                                                    decoration: BoxDecoration(color: Colors.white.withOpacity(0.3), borderRadius: BorderRadius.circular(30)),
+                                                                                    child: (snapshot.data!.docs.isNotEmpty)
+                                                                                        ? GestureDetector(
+                                                                                            onTap: () async {
+                                                                                              await FirestoreDataProvider().removeSaved(snapshot.data!.docs.first.id);
+                                                                                            },
+                                                                                            child: const Icon(Icons.favorite_rounded, color: Colors.red, size: 25),
+                                                                                          )
+                                                                                        : GestureDetector(
+                                                                                            onTap: () async {
+                                                                                              await FirestoreDataProvider().saveProperty(propertyId, propertyHolderUid);
+                                                                                            },
+                                                                                            child: const Icon(Icons.favorite_border, color: Colors.white, size: 25),
+                                                                                          )),
+                                                                              );
+                                                                            } else {
+                                                                              return const SizedBox();
+                                                                            }
+                                                                          })
                                                                     ]),
                                                               ),
                                                               const SizedBox(

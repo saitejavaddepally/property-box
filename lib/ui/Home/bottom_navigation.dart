@@ -6,6 +6,7 @@ import 'package:animations/animations.dart';
 import 'package:property_box/provider/firestore_data_provider.dart';
 import 'package:property_box/ui/Home/Chat/people.dart';
 import 'package:property_box/ui/Home/home.dart';
+import 'package:property_box/ui/Home/projects.dart';
 import 'package:property_box/ui/Home/sell_screen.dart';
 
 import '../../services/local_notification_service.dart';
@@ -22,7 +23,7 @@ class _BottomBarState extends State<BottomBar> {
   List screens = <Widget>[
     const Home(),
     const SellScreen(),
-    Container(color: Colors.cyan),
+    const Project(),
     const People(),
   ];
 

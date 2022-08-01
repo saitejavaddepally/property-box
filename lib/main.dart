@@ -8,6 +8,7 @@ import 'package:flutter_neumorphic/flutter_neumorphic.dart';
 import 'package:property_box/route_generator.dart';
 import 'package:property_box/services/auth_methods.dart';
 import 'package:property_box/services/local_notification_service.dart';
+import 'package:property_box/theme/colors.dart';
 import 'package:property_box/ui/Home/bottom_navigation.dart';
 import 'package:property_box/ui/onboarding.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -37,7 +38,16 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return NeumorphicApp(
-      theme: const NeumorphicThemeData(defaultTextColor: Colors.white),
+      theme: NeumorphicThemeData(
+        baseColor: CustomColors.dark,
+        defaultTextColor: Colors.white,
+        iconTheme: const IconThemeData(color: Colors.white),
+      ),
+      darkTheme: NeumorphicThemeData(
+        baseColor: CustomColors.dark,
+        defaultTextColor: Colors.white,
+        iconTheme: const IconThemeData(color: Colors.white),
+      ),
       supportedLocales: const [
         Locale("af"),
         Locale("am"),

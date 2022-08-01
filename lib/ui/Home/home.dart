@@ -173,7 +173,10 @@ class _HomeState extends State<Home> {
                     buttonText: "Get Score",
                     buttonTextColor: const Color(0xFF21293A),
                     buttonColor: const Color(0xFFF3F4F6),
-                    onButtonClick: () {}),
+                    onButtonClick: () {
+                      Navigator.pushNamed(
+                          context, RouteName.propertyBuyingScore);
+                    }),
                 const SizedBox(height: 30),
                 HomeContainer(
                     text: "Refer your friends",

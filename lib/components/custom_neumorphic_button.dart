@@ -7,6 +7,7 @@ class CustomNeumorphicButtom extends StatelessWidget {
   final Color shadowColor;
   final double borderRadius;
   final Color? textColor;
+  final EdgeInsets? padding;
   const CustomNeumorphicButtom(
       {required this.buttonText,
       required this.buttonColor,
@@ -14,12 +15,14 @@ class CustomNeumorphicButtom extends StatelessWidget {
       this.textColor,
       this.borderRadius = 10,
       this.onTap,
+      this.padding,
       Key? key})
       : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return NeumorphicButton(
+      padding: padding,
       onPressed: onTap,
       child: Center(
         child: Text(
