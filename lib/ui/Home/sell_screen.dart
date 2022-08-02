@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_neumorphic/flutter_neumorphic.dart';
 import 'package:property_box/components/custom_neu_text_field.dart';
+import 'package:property_box/components/custom_neumorphic_icon.dart';
 import 'package:property_box/provider/sell_provider.dart';
 import 'package:property_box/route_generator.dart';
 import 'package:provider/provider.dart';
@@ -43,91 +44,14 @@ class _SellScreenState extends State<SellScreen> {
   List plotPagesInformationOriginal = [];
   List plotPagesInformation = [];
   int page = 0;
+  bool isSaved = false;
+  final _firestoreDataProvider = FirestoreDataProvider();
   final CarouselController _carouselController = CarouselController();
 
   @override
   void initState() {
     super.initState();
-
-    //getPlotInformation();
   }
-
-  // Future getPlotInformation() async {
-  //   setState(() {
-  //     loading = true;
-  //   });
-  //   String? userId = await SharedPreferencesHelper().getUserId();
-  //   List numberOfProperties = await FirestoreDataProvider().getPlots();
-  //   int number = int.parse(numberOfProperties.length.toString());
-
-  //   for (var i = 0; i < number; i++) {
-  //     String plot = numberOfProperties[i] as String;
-  //     var plotNumber = plot.substring(5);
-  //     print("the plot is $plotNumber");
-  //     List detailsOfPages = await FirestoreDataProvider()
-  //         .getPlotPagesInformation(int.parse(plotNumber));
-
-  //     if (detailsOfPages.isEmpty) {
-  //       continue;
-  //     }
-
-  //     String profilePicture = await FirestoreDataProvider().getProfileImage(
-  //         "sell_images/$userId/standlone/plot_$plotNumber/images/");
-  //     profileImagesSorted.putIfAbsent(i, () => profilePicture);
-  //     detailsOfPages.add({"plotNo": plotNumber});
-  //     detailsOfPages.add({"picture": profilePicture});
-  //     plotPagesInformationOriginal.add(detailsOfPages);
-  //   }
-  //   setState(() {
-  //     plotPagesInformation = plotPagesInformationOriginal;
-  //     this.numberOfProperties = plotPagesInformation.length.toString();
-  //     loading = false;
-  //   });
-
-  //   return plotPagesInformation;
-  // }
-
-  // filterPlotsBasedOnTypes(String type) {
-  //   List filteredList = plotPagesInformationOriginal
-  //       .where((element) => element[0]['propertyType'] == type)
-  //       .toList();
-  //   setState(() {
-  //     plotPagesInformation = filteredList;
-  //     numberOfProperties = plotPagesInformation.length.toString();
-  //   });
-  // }
-
-  // sortPlotsBasedOnTypes(String type) {
-  //   //price low to high
-  //   if (type == "Price High - Low ") {
-  //     plotPagesInformation.sort((a, b) =>
-  //         int.parse(b[0]['price']).compareTo(int.parse(a[0]['price'])));
-  //     setState(() {
-  //       plotPagesInformation;
-  //     });
-  //   }
-  //   // price high to low
-  //   else if (type == "Price Low - High") {
-  //     print("Am I here?");
-  //     plotPagesInformation.sort((a, b) =>
-  //         int.parse(a[0]['price']).compareTo(int.parse(b[0]['price'])));
-  //     setState(() {
-  //       // plotPagesInformation = plotPagesInformation.reversed.toList();
-  //     });
-  //   } else if (type == "Date - Recent First") {
-  //     plotPagesInformation.sort((a, b) => DateTime.parse(a[0]['timestamp'])
-  //         .compareTo(DateTime.parse(b[0]['timestamp'])));
-  //     setState(() {
-  //       // plotPagesInformation = plotPagesInformation.reversed.toList();
-  //     });
-  //   } else {
-  //     plotPagesInformation.sort((a, b) => DateTime.parse(b[0]['timestamp'])
-  //         .compareTo(DateTime.parse(a[0]['timestamp'])));
-  //     setState(() {
-  //       // plotPagesInformation = plotPagesInformation.reversed.toList();
-  //     });
-  //   }
-  // }
 
   @override
   Widget build(BuildContext context) {
@@ -142,7 +66,6 @@ class _SellScreenState extends State<SellScreen> {
                   child: Container(
                     margin: const EdgeInsets.fromLTRB(24, 16, 24, 16),
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         SizedBox(
                             height: 100,
@@ -180,32 +103,23 @@ class _SellScreenState extends State<SellScreen> {
                                     ),
                                   ),
                                 ),
-                                Row(children: [
-                                  Container(
-                                    child: CircularNeumorphicButton(
-                                            imageName: 'img_2',
-                                            padding: 0,
-                                            color: CustomColors.dark,
-                                            size: 50,
-                                            onTap: () {},
-                                            isNeu: true,
-                                            isTextUnder: true,
-                                            text: 'Add')
-                                        .use(),
-                                  ),
-                                  const SizedBox(width: 20),
-                                  Container(
-                                    child: CircularNeumorphicButton(
-                                            imageName: 'save',
-                                            size: 50,
-                                            onTap: () {},
-                                            color: CustomColors.dark,
-                                            isNeu: true,
-                                            isTextUnder: true,
-                                            text: 'Saved')
-                                        .use(),
-                                  ),
-                                ]),
+                                Padding(
+                                  padding: const EdgeInsets.only(bottom: 10),
+                                  child: Row(children: [
+                                    const CustomNeumorphicIcon(icon: Icons.add),
+                                    const SizedBox(width: 20),
+                                    CustomNeumorphicIcon(
+                                        iconColor: isSaved ? Colors.red : null,
+                                        icon: (isSaved)
+                                            ? Icons.favorite_rounded
+                                            : Icons.favorite_border,
+                                        onTap: () {
+                                          setState(() {
+                                            isSaved = !isSaved;
+                                          });
+                                        }),
+                                  ]),
+                                ),
                               ],
                             )),
                         CustomNeumorphicTextField(
@@ -316,7 +230,9 @@ class _SellScreenState extends State<SellScreen> {
                         ),
                         const SizedBox(height: 15),
                         FutureBuilder<List>(
-                            future: FirestoreDataProvider().getAllProperties(),
+                            future: (isSaved)
+                                ? _firestoreDataProvider.getSavedProperty()
+                                : _firestoreDataProvider.getAllProperties(),
                             builder: (context, snapshot) {
                               if (snapshot.hasData) {
                                 if (snapshot.data!.isNotEmpty) {
@@ -516,7 +432,7 @@ class _SellScreenState extends State<SellScreen> {
                                                                               QuerySnapshot<
                                                                                   Map<String,
                                                                                       dynamic>>>(
-                                                                          stream: FirestoreDataProvider().isSavedProperty(
+                                                                          stream: _firestoreDataProvider.isSavedProperty(
                                                                               propertyHolderUid,
                                                                               propertyId),
                                                                           builder:
@@ -531,13 +447,13 @@ class _SellScreenState extends State<SellScreen> {
                                                                                     child: (snapshot.data!.docs.isNotEmpty)
                                                                                         ? GestureDetector(
                                                                                             onTap: () async {
-                                                                                              await FirestoreDataProvider().removeSaved(snapshot.data!.docs.first.id);
+                                                                                              await _firestoreDataProvider.removeSaved(snapshot.data!.docs.first.id);
                                                                                             },
                                                                                             child: const Icon(Icons.favorite_rounded, color: Colors.red, size: 25),
                                                                                           )
                                                                                         : GestureDetector(
                                                                                             onTap: () async {
-                                                                                              await FirestoreDataProvider().saveProperty(propertyId, propertyHolderUid);
+                                                                                              await _firestoreDataProvider.saveProperty(currentData);
                                                                                             },
                                                                                             child: const Icon(Icons.favorite_border, color: Colors.white, size: 25),
                                                                                           )),

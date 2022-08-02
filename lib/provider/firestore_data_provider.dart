@@ -7,8 +7,9 @@ class FirestoreDataProvider {
   final _user = FirebaseFirestore.instance.collection('users');
   final _chat = FirebaseFirestore.instance.collection('chats');
   final _leads_box = FirebaseFirestore.instance.collection('leads_box');
-
   final _sellPlots = FirebaseFirestore.instance.collection('sell_plots');
+  final _savedProperty =
+      FirebaseFirestore.instance.collection('saved_property');
 
   Future<Map<String, dynamic>?> getUserDetails() async {
     String? userId = await AuthMethods().getUserId();
@@ -74,27 +75,30 @@ class FirestoreDataProvider {
     return propertyData;
   }
 
-  Future saveProperty(String docId, String uid) async {
+  Future<List> getSavedProperty() async {
+    List propertyData = [];
     String? userId = await AuthMethods().getUserId();
-    FirebaseFirestore.instance
-        .collection('saved_property')
-        .doc(userId)
-        .collection('standlone')
-        .add({
-      'propertyId': docId,
-      'propertyHolderUid': uid,
-    });
+    final _querySnap =
+        await _savedProperty.doc(userId).collection('standlone').get();
+    for (final docSnap in _querySnap.docs) {
+      propertyData.add(docSnap.data());
+    }
+    return propertyData;
+  }
+
+  Future saveProperty(dynamic data) async {
+    String? userId = await AuthMethods().getUserId();
+    await _savedProperty.doc(userId).collection('standlone').add(data);
   }
 
   Stream<QuerySnapshot<Map<String, dynamic>>> isSavedProperty(
       String propertyHolderUid, String propertyId) {
     String? userId = FirebaseAuth.instance.currentUser?.uid;
 
-    return FirebaseFirestore.instance
-        .collection('saved_property')
+    return _savedProperty
         .doc(userId)
         .collection('standlone')
-        .where('propertyHolderUid', isEqualTo: propertyHolderUid)
+        .where('uid', isEqualTo: propertyHolderUid)
         .where('propertyId', isEqualTo: propertyId)
         .snapshots();
   }
@@ -102,8 +106,7 @@ class FirestoreDataProvider {
   Future removeSaved(String docId) async {
     String? userId = FirebaseAuth.instance.currentUser?.uid;
 
-    await FirebaseFirestore.instance
-        .collection('saved_property')
+    await _savedProperty
         .doc(userId)
         .collection('standlone')
         .doc(docId)
