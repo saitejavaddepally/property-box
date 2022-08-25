@@ -14,6 +14,7 @@ import 'package:property_box/ui/project_explorer.dart';
 import 'package:property_box/ui/property_buying_score.dart';
 import 'package:property_box/ui/realtor_card.dart';
 import 'package:property_box/ui/sign_up.dart';
+import 'package:property_box/ui/subscribed_agent.dart';
 import 'package:property_box/ui/tour.dart';
 
 class RouteName {
@@ -31,6 +32,7 @@ class RouteName {
   static const String interested = '/interested';
   static const String projectExplorer = '/project_explorer';
   static const String propertyBuyingScore = '/property_buying_score';
+  static const String subscribedAgent = '/subscribed_agent';
 }
 
 class RouteGenerator {
@@ -150,10 +152,25 @@ class RouteGenerator {
             child: const PropertyBuyingScore(),
             type: PageTransitionType.leftToRight);
 
+      case RouteName.subscribedAgent:
+        {
+          if (args is List) {
+            return PageTransition(
+                child: SubscribedAgent(users: args),
+                type: PageTransitionType.leftToRight);
+          }
+          return _errorRoute();
+        }
+
       case RouteName.projectExplorer:
-        return PageTransition(
-            child: const ProjectExplorer(),
-            type: PageTransitionType.leftToRight);
+        {
+          if (args is Map) {
+            return PageTransition(
+                child: ProjectExplorer(projectDetails: args),
+                type: PageTransitionType.leftToRight);
+          }
+        }
+        return _errorRoute();
 
       default:
         return _errorRoute();

@@ -4,12 +4,13 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:property_box/services/auth_methods.dart';
 
 class FirestoreDataProvider {
-  final _user = FirebaseFirestore.instance.collection('users');
+  static final _user = FirebaseFirestore.instance.collection('users');
   final _chat = FirebaseFirestore.instance.collection('chats');
   final _leads_box = FirebaseFirestore.instance.collection('leads_box');
   final _sellPlots = FirebaseFirestore.instance.collection('sell_plots');
   final _savedProperty =
       FirebaseFirestore.instance.collection('saved_property');
+  static final _projects = FirebaseFirestore.instance.collection('projects');
 
   Future<Map<String, dynamic>?> getUserDetails() async {
     String? userId = await AuthMethods().getUserId();
@@ -73,6 +74,21 @@ class FirestoreDataProvider {
       }
     }
     return propertyData;
+  }
+
+  static Future<List> getAllProjects() async {
+    final querySnap = await _projects.get();
+    final allData = querySnap.docs
+        .map((doc) => doc.data()..addAll({'docId': doc.id}))
+        .toList();
+    return allData;
+  }
+
+  static Future<List<Map<String, dynamic>>> getSubscribedUser(
+      List users) async {
+    final _querySnap =
+        await _user.where(FieldPath.documentId, whereIn: users).get();
+    return _querySnap.docs.map((e) => e.data()).toList();
   }
 
   Future<List> getSavedProperty() async {

@@ -67,6 +67,8 @@ class _RealtorCardState extends State<RealtorCard> {
                               'interestedUserUid': _currentUid,
                               'profile': _plotProfilePicture,
                               'plotNo': _plotNo,
+                              'status': 'new customer',
+                              'notes': '',
                               'propertyId': _propertyId
                             });
                       }

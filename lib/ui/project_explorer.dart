@@ -1,22 +1,31 @@
 import 'package:carousel_slider/carousel_slider.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_neumorphic/flutter_neumorphic.dart';
 import 'package:readmore/readmore.dart';
 
 import '../components/custom_button.dart';
 import '../components/neu_circular_button.dart';
+import '../route_generator.dart';
 import '../theme/colors.dart';
 import 'Home/projects.dart';
 
 class ProjectExplorer extends StatefulWidget {
-  const ProjectExplorer({Key? key}) : super(key: key);
+  final Map projectDetails;
+  const ProjectExplorer({Key? key, required this.projectDetails})
+      : super(key: key);
 
   @override
   State<ProjectExplorer> createState() => _ProjectExplorerState();
 }
 
 class _ProjectExplorerState extends State<ProjectExplorer> {
+  late Map data;
   CarouselController buttonCarouselController = CarouselController();
+
+  @override
+  void initState() {
+    data = widget.projectDetails;
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -38,6 +47,7 @@ class _ProjectExplorerState extends State<ProjectExplorer> {
                   child: CustomImage(
                     height: 200,
                     onTap: () {},
+                    image: data['images'][0],
                   ),
                 ),
               ]),
@@ -152,6 +162,7 @@ class _ProjectExplorerState extends State<ProjectExplorer> {
                       Page(
                         controller: buttonCarouselController,
                         pageNumber: 1,
+                        projectDetails: data,
                         nameList: const [
                           'Location',
                           'Gallery',
@@ -162,6 +173,7 @@ class _ProjectExplorerState extends State<ProjectExplorer> {
                       Page(
                         controller: buttonCarouselController,
                         pageNumber: 2,
+                        projectDetails: data,
                         nameList: const [
                           'Layout',
                           'Emi',
@@ -198,7 +210,13 @@ class _ProjectExplorerState extends State<ProjectExplorer> {
                     child: CustomButton(
                             text: "I'm Interested",
                             textColor: Colors.black,
-                            onClick: () {},
+                            onClick: () {
+                              final Map subscribedUsers =
+                                  data['subscribedUsers'] ?? {};
+                              Navigator.pushNamed(
+                                  context, RouteName.subscribedAgent,
+                                  arguments: subscribedUsers.keys.toList());
+                            },
                             isNeu: false,
                             width: double.maxFinite,
                             height: 40,
@@ -229,9 +247,11 @@ class Page extends StatelessWidget {
   final int pageNumber;
 
   final List nameList;
+  final Map projectDetails;
   const Page(
       {required this.controller,
       required this.pageNumber,
+      required this.projectDetails,
       required this.nameList,
       Key? key})
       : super(key: key);
