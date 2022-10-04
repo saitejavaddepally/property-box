@@ -22,6 +22,7 @@ class GetUserLocation {
       // Location services are not enabled don't continue
       // accessing the position and request users of the
       // App to enable the location services.
+
       return Future.error('Location services are disabled.');
     }
 
@@ -50,17 +51,18 @@ class GetUserLocation {
         desiredAccuracy: LocationAccuracy.high);
   }
 
-  static Future<String?> getCurrentLocation() async {
+  static Future<List?> getCurrentLocation() async {
     try {
       final location = GetUserLocation();
       final Position position = await location.determinePosition();
 
       final address = await location.getAddressFromCoordinates(
           LatLng(position.latitude, position.longitude));
-      return address;
-    } on Exception catch (e) {
+      return [address, position.latitude, position.longitude];
+    } catch (e) {
       if (e.toString() == 'Location services are disabled.') {
         Fluttertoast.showToast(msg: "Please Turn On Location Service First");
+        await Geolocator.openLocationSettings();
       } else if (e.toString() == 'Location permissions are denied') {
         Fluttertoast.showToast(
             msg:
@@ -75,8 +77,8 @@ class GetUserLocation {
     }
   }
 
-  static Future<String?> getMapLocation(BuildContext context) async {
-    final String? result = await Navigator.push(
+  static Future<List> getMapLocation(BuildContext context) async {
+    final List result = await Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => FutureBuilder<Position>(
@@ -86,7 +88,11 @@ class GetUserLocation {
                 return PlacePicker(
                   apiKey: 'AIzaSyCBMs8s8SbqSXLzoygoqc20EvzqBY5wBX0',
                   onPlacePicked: (result) {
-                    Navigator.of(context).pop(result.formattedAddress);
+                    Navigator.pop(context, [
+                      result.formattedAddress,
+                      result.geometry?.location.lat,
+                      result.geometry?.location.lng
+                    ]);
                   },
                   hintText: "Search",
                   enableMapTypeButton: false,
@@ -95,6 +101,10 @@ class GetUserLocation {
                   useCurrentLocation: true,
                 );
               } else if (snapshot.hasError) {
+                if (snapshot.error == 'Location services are disabled.') {
+                  Geolocator.openLocationSettings()
+                      .then((value) => Navigator.pop(context));
+                }
                 return Center(child: Text(snapshot.error.toString()));
               } else {
                 return const Center(child: CircularProgressIndicator());

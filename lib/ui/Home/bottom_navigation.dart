@@ -7,7 +7,7 @@ import 'package:property_box/provider/firestore_data_provider.dart';
 import 'package:property_box/ui/Home/Chat/people.dart';
 import 'package:property_box/ui/Home/home.dart';
 import 'package:property_box/ui/Home/projects.dart';
-import 'package:property_box/ui/Home/sell_screen.dart';
+import 'package:property_box/ui/Home/property_screen.dart';
 
 import '../../services/local_notification_service.dart';
 
@@ -22,7 +22,7 @@ class BottomBar extends StatefulWidget {
 class _BottomBarState extends State<BottomBar> {
   List screens = <Widget>[
     const Home(),
-    const SellScreen(),
+    const PropertyScreen(),
     const Project(),
     const People(),
   ];
@@ -37,31 +37,17 @@ class _BottomBarState extends State<BottomBar> {
     FirebaseMessaging.instance
         .getInitialMessage()
         .then((RemoteMessage? message) {
-      print("get initial message");
-      if (message != null) {
-        print(message.notification!.body);
-        print(message.notification!.title);
-      }
+      if (message != null) {}
     });
 
     //work when the app is in foreground
     FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
-      // print("OnMessage");
-      // if (message.notification != null) {
-      //   print(message.notification!.body);
-      //   print(message.notification!.title);
-      // }
       await LocalNotificationService.display(message);
     });
 
     //when the app is in the background but not terminated and user taps on the notification
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-      print("OnMessageOpenedApp");
-      if (message.notification != null) {
-        print(message.notification!.body);
-        print(message.notification!.title);
-        print(message.data);
-      }
+      if (message.notification != null) {}
     });
   }
 
@@ -87,97 +73,103 @@ class _BottomBarState extends State<BottomBar> {
 
   @override
   Widget build(BuildContext context) {
-    FirestoreDataProvider().getAllChatCounter().then((value) => null);
     return Scaffold(
         backgroundColor: const Color(0xFF202526),
         bottomNavigationBar: FutureBuilder<num>(
-          future: FirestoreDataProvider().getAllChatCounter(),
-          initialData: 0,
-          builder: (context, snapshot) => SizedBox(
-            height: 72,
-            child: BottomNavigationBar(
-                currentIndex: widget.index,
-                onTap: (index) {
-                  setState(() {
-                    widget.index = index;
-                  });
-                },
-                type: BottomNavigationBarType.fixed,
-                selectedLabelStyle: const TextStyle(
-                  fontWeight: FontWeight.w500,
-                  fontSize: 12,
-                  letterSpacing: -0.15,
-                ),
-                unselectedLabelStyle: const TextStyle(
-                  fontWeight: FontWeight.w500,
-                  fontSize: 12,
-                  letterSpacing: -0.15,
-                ),
-                selectedItemColor: const Color(0xFF2AB0E4),
-                unselectedItemColor: Colors.white.withOpacity(0.3),
-                backgroundColor: const Color(0xFF202526),
-                items: [
-                  BottomNavigationBarItem(
-                      icon:
-                          Image.asset("assets/home.png", height: 24, width: 24),
-                      activeIcon: Image.asset("assets/home_active.png",
-                          height: 24, width: 24),
-                      label: "Home"),
-                  BottomNavigationBarItem(
-                      icon: Image.asset("assets/properties.png",
-                          height: 24, width: 24),
-                      activeIcon: Image.asset("assets/properties_active.png",
-                          height: 24, width: 24),
-                      label: "Properties"),
-                  BottomNavigationBarItem(
-                      icon: Image.asset("assets/projects.png",
-                          height: 24, width: 24),
-                      activeIcon: Image.asset("assets/projects.png",
-                          height: 24, width: 24),
-                      label: "Projects"),
-                  BottomNavigationBarItem(
-                      icon: Stack(children: [
-                        Image.asset("assets/chat.png", height: 24, width: 24),
-                        if (snapshot.data != 0)
-                          Positioned(
-                            top: 0,
-                            right: 0,
-                            child: Container(
-                                decoration: BoxDecoration(
-                                    color: Colors.red,
-                                    borderRadius: BorderRadius.circular(30)),
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 5, vertical: 2),
-                                child: Text(
-                                  snapshot.data.toString(),
-                                  style: const TextStyle(
-                                      color: Colors.white, fontSize: 10),
-                                )),
-                          ),
-                      ]),
-                      activeIcon: Stack(children: [
-                        Image.asset("assets/chat.png", height: 24, width: 24),
-                        if (snapshot.data != 0)
-                          Positioned(
-                            top: 0,
-                            right: 0,
-                            child: Container(
-                                decoration: BoxDecoration(
-                                    color: Colors.red,
-                                    borderRadius: BorderRadius.circular(30)),
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 5, vertical: 2),
-                                child: Text(
-                                  snapshot.data.toString(),
-                                  style: const TextStyle(
-                                      color: Colors.white, fontSize: 10),
-                                )),
-                          ),
-                      ]),
-                      label: "Chats"),
-                ]),
-          ),
-        ),
+            future: FirestoreDataProvider().getAllChatCounter(),
+            initialData: 0,
+            builder: (context, snapshot) {
+              return SizedBox(
+                height: 72,
+                child: BottomNavigationBar(
+                    currentIndex: widget.index,
+                    onTap: (index) {
+                      setState(() {
+                        widget.index = index;
+                      });
+                    },
+                    type: BottomNavigationBarType.fixed,
+                    selectedLabelStyle: const TextStyle(
+                      fontWeight: FontWeight.w500,
+                      fontSize: 12,
+                      letterSpacing: -0.15,
+                    ),
+                    unselectedLabelStyle: const TextStyle(
+                      fontWeight: FontWeight.w500,
+                      fontSize: 12,
+                      letterSpacing: -0.15,
+                    ),
+                    selectedItemColor: const Color(0xFF2AB0E4),
+                    unselectedItemColor: Colors.white.withOpacity(0.3),
+                    backgroundColor: const Color(0xFF202526),
+                    items: [
+                      BottomNavigationBarItem(
+                          icon: Image.asset("assets/home.png",
+                              height: 24, width: 24),
+                          activeIcon: Image.asset("assets/home_active.png",
+                              height: 24, width: 24),
+                          label: "Home"),
+                      BottomNavigationBarItem(
+                          icon: Image.asset("assets/properties.png",
+                              height: 24, width: 24),
+                          activeIcon: Image.asset(
+                              "assets/properties_active.png",
+                              height: 24,
+                              width: 24),
+                          label: "Properties"),
+                      BottomNavigationBarItem(
+                          icon: Image.asset("assets/projects.png",
+                              height: 24, width: 24),
+                          activeIcon: Image.asset("assets/projects.png",
+                              height: 24, width: 24),
+                          label: "Projects"),
+                      BottomNavigationBarItem(
+                          icon: Stack(children: [
+                            Image.asset("assets/chat.png",
+                                height: 24, width: 24),
+                            if (snapshot.data != 0)
+                              Positioned(
+                                top: 0,
+                                right: 0,
+                                child: Container(
+                                    decoration: BoxDecoration(
+                                        color: Colors.red,
+                                        borderRadius:
+                                            BorderRadius.circular(30)),
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 5, vertical: 2),
+                                    child: Text(
+                                      snapshot.data.toString(),
+                                      style: const TextStyle(
+                                          color: Colors.white, fontSize: 10),
+                                    )),
+                              ),
+                          ]),
+                          activeIcon: Stack(children: [
+                            Image.asset("assets/chat.png",
+                                height: 24, width: 24),
+                            if (snapshot.data != 0)
+                              Positioned(
+                                top: 0,
+                                right: 0,
+                                child: Container(
+                                    decoration: BoxDecoration(
+                                        color: Colors.red,
+                                        borderRadius:
+                                            BorderRadius.circular(30)),
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 5, vertical: 2),
+                                    child: Text(
+                                      snapshot.data.toString(),
+                                      style: const TextStyle(
+                                          color: Colors.white, fontSize: 10),
+                                    )),
+                              ),
+                          ]),
+                          label: "Chats"),
+                    ]),
+              );
+            }),
         body: PageTransitionSwitcher(
           transitionBuilder: (child, primaryAnimation, secondaryAnimation) =>
               FadeThroughTransition(

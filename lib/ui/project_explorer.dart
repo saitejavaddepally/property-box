@@ -284,7 +284,32 @@ class Page extends StatelessWidget {
                 text: i,
                 isTextUnder: true,
                 onTap: () {
-                  Navigator.pushNamed(context, '/' + i.toLowerCase());
+                  print(i);
+                  switch (i.toLowerCase()) {
+                    case 'location':
+                      {
+                        Navigator.pushNamed(context, RouteName.location,
+                            arguments: [
+                              projectDetails['latitude'],
+                              projectDetails['longitude']
+                            ]);
+                        break;
+                      }
+
+                    case 'gallery':
+                      {
+                        Navigator.pushNamed(context, RouteName.gallery,
+                            arguments: projectDetails['images']);
+                        break;
+                      }
+                    case 'tour':
+                      {
+                        print(projectDetails['videos']);
+                        Navigator.pushNamed(context, RouteName.tour,
+                            arguments: projectDetails['videos']);
+                        break;
+                      }
+                  }
                 }).use(),
           ),
         if (pageNumber == 1)

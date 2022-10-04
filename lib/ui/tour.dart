@@ -15,7 +15,6 @@ class Tour extends StatefulWidget {
 class _TourState extends State<Tour> {
   @override
   Widget build(BuildContext context) {
-    print(widget.videos);
     return Scaffold(
         backgroundColor: CustomColors.dark,
         body: SafeArea(
@@ -47,11 +46,11 @@ class _TourState extends State<Tour> {
               const SizedBox(height: 20),
               Flexible(
                   child: ListView.builder(
-                      itemCount: widget.videos[0].length,
+                      itemCount: widget.videos.length,
                       itemBuilder: (context, index) {
                         return VideoPlayPage(
-                            videoLink: widget.videos[0][index],
-                            videoName: widget.videos[1][index]);
+                            videoLink: widget.videos[index],
+                            videoName: 'video${index + 1}');
                       }))
             ]),
           ),
@@ -126,13 +125,16 @@ class _VideoPlayPageState extends State<VideoPlayPage> {
                               });
                             }
                           },
-                          child: AspectRatio(
-                            aspectRatio: _controller.value.aspectRatio,
+                          child: SizedBox(
+                            width: double.maxFinite,
+                            height: 250,
                             child: ClipRRect(
                                 borderRadius: const BorderRadius.only(
                                     topLeft: Radius.circular(10),
                                     topRight: Radius.circular(10)),
-                                child: VideoPlayer(_controller)),
+                                child: InteractiveViewer(
+                                    maxScale: 4,
+                                    child: VideoPlayer(_controller))),
                           ),
                         ),
                         const SizedBox(height: 10),

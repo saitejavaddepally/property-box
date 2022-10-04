@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:property_box/services/auth_methods.dart';
 
 class FirestoreDataProvider {
@@ -49,33 +50,6 @@ class FirestoreDataProvider {
     }
   }
 
-  Future<List> getAllProperties() async {
-    List propertyData = [];
-
-    final _querySnapUser = await _user.get();
-    for (final _user in _querySnapUser.docs) {
-      final userId = _user.id;
-      final _collRefPlots = _sellPlots.doc(userId).collection('standlone');
-      final _querySnapPlot = await _collRefPlots.get();
-
-      for (var item in _querySnapPlot.docs) {
-        final plotNo = item.id;
-        final info = await _collRefPlots
-            .doc(plotNo)
-            .collection('pages_info')
-            .where('box_enabled', isEqualTo: 1)
-            .get();
-
-        if (info.docs.isNotEmpty) {
-          final propertyId = info.docs.first.id;
-          propertyData.add(info.docs.first.data()
-            ..addAll({'plotNo': plotNo, 'propertyId': propertyId}));
-        }
-      }
-    }
-    return propertyData;
-  }
-
   static Future<List> getAllProjects() async {
     final querySnap = await _projects.get();
     final allData = querySnap.docs
@@ -91,44 +65,6 @@ class FirestoreDataProvider {
     return _querySnap.docs.map((e) => e.data()).toList();
   }
 
-  Future<List> getSavedProperty() async {
-    List propertyData = [];
-    String? userId = await AuthMethods().getUserId();
-    final _querySnap =
-        await _savedProperty.doc(userId).collection('standlone').get();
-    for (final docSnap in _querySnap.docs) {
-      propertyData.add(docSnap.data());
-    }
-    return propertyData;
-  }
-
-  Future saveProperty(dynamic data) async {
-    String? userId = await AuthMethods().getUserId();
-    await _savedProperty.doc(userId).collection('standlone').add(data);
-  }
-
-  Stream<QuerySnapshot<Map<String, dynamic>>> isSavedProperty(
-      String propertyHolderUid, String propertyId) {
-    String? userId = FirebaseAuth.instance.currentUser?.uid;
-
-    return _savedProperty
-        .doc(userId)
-        .collection('standlone')
-        .where('uid', isEqualTo: propertyHolderUid)
-        .where('propertyId', isEqualTo: propertyId)
-        .snapshots();
-  }
-
-  Future removeSaved(String docId) async {
-    String? userId = FirebaseAuth.instance.currentUser?.uid;
-
-    await _savedProperty
-        .doc(userId)
-        .collection('standlone')
-        .doc(docId)
-        .delete();
-  }
-
   Future<String?> getUserName(String? userId) async {
     final _data = await _user.doc(userId).get();
     final uname = _data.data()?['name'];
@@ -137,7 +73,8 @@ class FirestoreDataProvider {
 
   Future<num> getAllChatCounter() async {
     num _totalCounter = 0;
-    String? uid = await AuthMethods().getUserId();
+    String? uid = FirebaseAuth.instance.currentUser?.uid;
+
     final _currentUser = await _user.doc(uid).get();
     final _currentUserData = _currentUser.data();
     final _querySnapUser = await _user.get();
@@ -172,8 +109,8 @@ class FirestoreDataProvider {
     }
   }
 
-  Future<String> getLatestMessage(String friendUid) async {
-    String msg = "";
+  Future<List> getLatestMessage(String friendUid) async {
+    List msg = [null, ''];
     String? currentUid = await AuthMethods().getUserId();
     final querySnapshot = await _chat
         .where('users', isEqualTo: {friendUid: null, currentUid: null})
@@ -190,70 +127,19 @@ class FirestoreDataProvider {
 
       if (querySnap.docs.isNotEmpty) {
         final data = querySnap.docs.first.data();
+        msg[0] = data['createdOn'];
+
         if (data['type'] == 'image') {
-          msg = 'Image';
+          msg[1] = 'Image';
         } else if (data['type'] == 'pdf') {
-          msg = 'Pdf';
+          msg[1] = 'Pdf';
         } else if (data['type'] == 'loc') {
-          msg = "Location";
+          msg[1] = 'location';
         } else {
-          msg = data['msg'];
+          msg[1] = data['msg'];
         }
       }
     }
     return msg;
-  }
-
-  Future<List<dynamic>> getAllImage(userId, String plotNo) async {
-    final storageRef = FirebaseStorage.instance
-        .ref()
-        .child("sell_images/$userId/standlone/$plotNo/images/");
-    final List<dynamic> images = List.generate(8, (index) => null);
-    final listResult = await storageRef.listAll();
-
-    for (int i = 0; i < listResult.items.length; i++) {
-      await listResult.items[i].getDownloadURL().then((value) async {
-        images[i] = value;
-      });
-    }
-
-    return images;
-  }
-
-  Future<List<dynamic>> getAllVideos(userId, String plotNo) async {
-    final storageRef = FirebaseStorage.instance
-        .ref()
-        .child("sell_images/$userId/standlone/$plotNo/videos/");
-    final List<dynamic> videos = List.generate(4, (index) => null);
-    final List<dynamic> previousVideoNames = List.generate(4, (index) => null);
-
-    final listResult = await storageRef.listAll();
-
-    for (int i = 0; i < listResult.items.length; i++) {
-      previousVideoNames[i] = listResult.items[i].name;
-      await listResult.items[i].getDownloadURL().then((value) async {
-        videos[i] = value;
-      });
-    }
-
-    return [previousVideoNames, videos];
-  }
-
-  Future<List<dynamic>> getAllDocs(userId, String plotNo) async {
-    final storageRef = FirebaseStorage.instance
-        .ref()
-        .child("sell_images/$userId/standlone/$plotNo/docs/");
-    final List<dynamic> docs = List.generate(4, (index) => null);
-    final List<dynamic> previousDocNames = List.generate(4, (index) => null);
-    final listResult = await storageRef.listAll();
-
-    for (int i = 0; i < listResult.items.length; i++) {
-      previousDocNames[i] = listResult.items[i].name;
-      await listResult.items[i].getDownloadURL().then((value) async {
-        docs[i] = value;
-      });
-    }
-
-    return [previousDocNames, docs];
   }
 }

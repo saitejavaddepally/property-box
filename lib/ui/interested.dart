@@ -125,15 +125,16 @@ class _InterestedState extends State<Interested> {
                                             setState(() => isLoading = false);
                                             if (res != null && res.isNotEmpty) {
                                               value.locationController.text =
-                                                  res;
+                                                  res[0];
                                             }
                                           }
                                           if (result == 2) {
                                             final res = await GetUserLocation
                                                 .getMapLocation(context);
-                                            if (res != null && res.isNotEmpty) {
+                                            setState(() => isLoading = false);
+                                            if (res.isNotEmpty) {
                                               value.locationController.text =
-                                                  res;
+                                                  res[0];
                                             }
                                           }
                                         },

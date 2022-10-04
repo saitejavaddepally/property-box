@@ -107,14 +107,14 @@ class _SignUpFormState extends State<SignUpForm> {
                                   await GetUserLocation.getCurrentLocation();
                               setState(() => isLoading = false);
                               if (res != null && res.isNotEmpty) {
-                                _locationController.text = res;
+                                _locationController.text = res[0];
                               }
                             }
                             if (result == 2) {
                               final res =
                                   await GetUserLocation.getMapLocation(context);
-                              if (res != null && res.isNotEmpty) {
-                                _locationController.text = res;
+                              if (res.isNotEmpty) {
+                                _locationController.text = res[0];
                               }
                             }
                           },
@@ -155,7 +155,8 @@ class _SignUpFormState extends State<SignUpForm> {
                                 setState(() => isLoading = false);
 
                                 Navigator.pushNamed(
-                                    context, RouteName.bottomBar);
+                                    context, RouteName.bottomBar,
+                                    arguments: 0);
                               }
                             },
                           ),
@@ -222,8 +223,16 @@ class _SignUpFormState extends State<SignUpForm> {
         {
           'name': name,
           'uid': userId,
-          'location': location,
+          'freeCredit': "1",
+          'isSubscribed': false,
+          'freeCreditPropertyBox': 1,
           'phone': phoneNumber,
+          'counter': 0,
+          'location': location,
+          'ref_code': userId?.substring(0, 6).toUpperCase(),
+          'email': '',
+          'agent_exp': '',
+          'profile_pic': '',
         },
       );
     } catch (e) {

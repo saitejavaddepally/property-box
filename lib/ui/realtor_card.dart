@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -66,10 +67,11 @@ class _RealtorCardState extends State<RealtorCard> {
                               'plotOwnerUid': _plotOwnerUid,
                               'interestedUserUid': _currentUid,
                               'profile': _plotProfilePicture,
-                              'plotNo': _plotNo,
                               'status': 'new customer',
+                              'isDelete': false,
                               'notes': '',
-                              'propertyId': _propertyId
+                              'propertyId': _propertyId,
+                              'timestamp': FieldValue.serverTimestamp()
                             });
                       }
                     }

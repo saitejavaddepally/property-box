@@ -33,19 +33,6 @@ class _LocationScreenState extends State<LocationScreen> {
     super.initState();
   }
 
-  // Future<Map<String, dynamic>> getPlotLocation() async {
-  //   var number = await SharedPreferencesHelper().getCurrentPage();
-  //   print("number is $number");
-  //   List data = await FirestoreDataProvider()
-  //       .getPlotPagesInformation(int.parse(number!));
-  //   Map locationData = data[0];
-  //   double _lat = locationData['latitude'];
-  //   double _long = locationData['longitude'];
-  //   print("Am I here $_lat and $_long");
-
-  //   return {"latitude": _lat, "longitude": _long};
-  // }
-
   Future<void> getNearbyLocations(String type, double color) async {
     _markers = [_markers.first];
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(

@@ -8,7 +8,8 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:property_box/provider/firestore_data_provider.dart';
+import 'package:intl/intl.dart';
+
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -19,7 +20,10 @@ import 'package:flutter_chat_bubble/clippers/chat_bubble_clipper_6.dart';
 
 import '../../../components/custom_text_field.dart';
 import '../../../components/neu_circular_button.dart';
+
+import '../../../provider/firestore_data_provider.dart';
 import '../../../route_generator.dart';
+
 import '../../../services/loction_service.dart';
 import '../../../theme/colors.dart';
 
@@ -117,6 +121,7 @@ class _ChatDetailState extends State<ChatDetail> {
 
   @override
   void initState() {
+    print(widget.friendName);
     FirestoreDataProvider()
         .clearParticularChatCounter(widget.friendUid)
         .then((value) => null);
@@ -255,7 +260,7 @@ class _ChatDetailState extends State<ChatDetail> {
                       onWillPop: () async {
                         Navigator.pushNamedAndRemoveUntil(
                             context, RouteName.bottomBar, (route) => false,
-                            arguments: 3);
+                            arguments: 2);
                         return true;
                       },
                       child: Scaffold(
@@ -315,7 +320,9 @@ class _ChatDetailState extends State<ChatDetail> {
                                                                 MainAxisAlignment
                                                                     .start,
                                                             children: [
-                                                              Text(data['msg'],
+                                                              Flexible(
+                                                                child: Text(
+                                                                  data['msg'],
                                                                   style: TextStyle(
                                                                       color: isSender(data['uid']
                                                                               .toString())
@@ -323,10 +330,8 @@ class _ChatDetailState extends State<ChatDetail> {
                                                                               .white
                                                                           : Colors
                                                                               .black),
-                                                                  maxLines: 100,
-                                                                  overflow:
-                                                                      TextOverflow
-                                                                          .ellipsis)
+                                                                ),
+                                                              )
                                                             ],
                                                           ),
                                                           Row(
@@ -335,14 +340,9 @@ class _ChatDetailState extends State<ChatDetail> {
                                                                     .end,
                                                             children: [
                                                               Text(
-                                                                data['createdOn'] ==
-                                                                        null
-                                                                    ? DateTime
-                                                                            .now()
-                                                                        .toString()
-                                                                    : data['createdOn']
-                                                                        .toDate()
-                                                                        .toString(),
+                                                                formatTimestamp(
+                                                                    data[
+                                                                        'createdOn']),
                                                                 style: TextStyle(
                                                                     fontSize:
                                                                         10,
@@ -468,6 +468,12 @@ class _ChatDetailState extends State<ChatDetail> {
             return const Center(child: Text("Something Went Wrong"));
           }
         });
+  }
+
+  String formatTimestamp(Timestamp timestamp) {
+    // return DateFormat().add_yMd().add_jm().format(timestamp.toDate());
+    var format = DateFormat('d-MM-y h:mm:a'); // <- use skeleton here
+    return format.format(timestamp.toDate());
   }
 
   Widget customBottomSheet(String chatDocId) {
